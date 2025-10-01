@@ -69,20 +69,23 @@ mime_types_content = """types {
 
 def github(type):
     if not os.path.exists(f'/data/{GH_REPO}'):
-        os.chdir(f'/data/{GH_REPO}')
+        os.system(f"git clone https://{GH_PAT}:x-oauth-basic@github.com/{GH_USER}/{GH_REPO}.git")
+    
+    os.chdir(f'/data/{GH_REPO}')
+    
     if type == 1:
         # 拉取仓库
-        os.system(f"git clone https://{GH_PAT}:x-oauth-basic@github.com/{GH_USER}/{GH_REPO}.git")
-            if not os.path.exists(f'/data/{GH_REPO}'):
-                os.chdir(f'/data/{GH_REPO}')
-                os.system(f'git config --global user.email "{GH_EMAIL}"')
-                os.system(f'git config --global user.name "{GH_USER}"') 
+        if not os.path.exists(f'/data/{GH_REPO}'):
+            os.system(f'git config --global user.email "{GH_EMAIL}"')
+            os.system(f'git config --global user.name "{GH_USER}"') 
+    
     if type == 2:
-        #备份上传仓库
-        current_time = now.strftime("%Y-%m-%d %H:%M:%S")
+        # 备份上传仓库
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         os.system('git add .')
         os.system(f'git commit -m "{current_time}"')
         os.system('git push -u origin main')
+
         
 
 def nginx():
