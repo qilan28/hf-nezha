@@ -6,7 +6,7 @@ def nginx():
     time.sleep(10)
     os.system("rm -r /data/nginx.conf")
     os.system("wget -O '/data/nginx.conf' -q 'https://raw.githubusercontent.com/qilan28/hf-nezha/refs/heads/main/nginx.conf'")
-    os.system("nginx -c /data/nginx.conf")
+    os.system("/data/nginx1.24/sbin/nginx -c /data/nginx.conf")
 def nezha():
     os.system("rm -r /data/dashboard-linux-amd64.zip /data/dashboard-linux-amd64")
     os.system("wget -O '/data/dashboard-linux-amd64.zip' -q 'https://github.com/nezhahq/nezha/releases/download/v1.13.2/dashboard-linux-amd64.zip'")
