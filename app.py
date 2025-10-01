@@ -5,7 +5,6 @@ import time
 import yaml
 import datetime
 GH_USER	= os.environ.get('GH_USER', '')# github 的用户名，用于面板管理授权
-GH_BACKUP_USER	= os.environ.get('GH_BACKUP_USER', '')	#在 github 上备份哪吒服务端数据库的 github 用户名
 GH_REPO	= os.environ.get('GH_REPO', '')#在 github 上备份哪吒服务端数据库文件的 github 库
 GH_EMAIL = os.environ.get('GH_EMAIL', '') #github 的邮箱，用于备份的 git 推送到远程库
 GH_PAT = os.environ.get('GH_PAT', '')#github 的 PAT ghp开头的
@@ -73,11 +72,11 @@ def github(type):
         os.chdir(f'/data/{GH_REPO}')
     if type == 1:
         # 拉取仓库
-        os.system(f"git clone https://{GH_PAT}:x-oauth-basic@github.com/{GH_BACKUP_USER}/{GH_REPO}.git")
+        os.system(f"git clone https://{GH_PAT}:x-oauth-basic@github.com/{GH_USER}/{GH_REPO}.git")
             if not os.path.exists(f'/data/{GH_REPO}'):
                 os.chdir(f'/data/{GH_REPO}')
                 os.system(f'git config --global user.email "{GH_EMAIL}"')
-                os.system(f'git config --global user.name "{GH_BACKUP_USER}"') 
+                os.system(f'git config --global user.name "{GH_USER}"') 
     if type == 2:
         #备份上传仓库
         current_time = now.strftime("%Y-%m-%d %H:%M:%S")
