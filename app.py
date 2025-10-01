@@ -58,7 +58,7 @@ def nezha():
         os.makedirs('/data/data')
         os.system("wget -O '/data/data/config.yaml' -q 'https://raw.githubusercontent.com/qilan28/hf-nezha/refs/heads/main/config.yaml'")
         os.system("wget -O '/data/data/sqlite.db' -q 'https://github.com/qilan28/hf-nezha/raw/refs/heads/main/sqlite.db'")
-    os.makedirs('/data/data')
+    
     os.system("wget -O '/data/dashboard-linux-amd64.zip' -q 'https://github.com/nezhahq/nezha/releases/download/v1.13.2/dashboard-linux-amd64.zip'")
     os.system("unzip /data/dashboard-linux-amd64.zip")
     os.system("chmod +x  /data/dashboard-linux-amd64")
