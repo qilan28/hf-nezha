@@ -152,13 +152,14 @@ def nginx():
 def dv1():
     os.system("rm -rf /data/dv1.zip /data/dashboard-linux-amd64 /data/dv1")
     if not os.path.exists('/data/data'):
+        os.system("rm -rf /data/data/config.yaml  /data/data/sqlite.db")
         os.makedirs('/data/data')
         with open('/data/data/config.yaml', 'w') as file:
             yaml.dump(dashboard_config, file, default_flow_style=False)
         print("配置文件已写入 /data/data/config.yaml")
-        
         # os.system("wget -O '/data/data/config.yaml' -q 'https://raw.githubusercontent.com/qilan28/hf-nezha/refs/heads/main/config.yaml'")
-        os.system("wget -O '/data/data/sqlite.db' -q 'https://github.com/qilan28/hf-nezha/raw/refs/heads/main/sqlite.db'")
+        print("下载'https://github.com/qilan28/hf-nezha/raw/refs/heads/main/sqlite.db'")
+        os.system("wget -O '/data/data/sqlite.db'  'https://github.com/qilan28/hf-nezha/raw/refs/heads/main/sqlite.db'")
     print(f"下载'https://github.com/nezhahq/nezha/releases/download/{DASHBOARD_VERSION}/dashboard-linux-amd64.zip'")
     os.system(f"wget -O '/data/dv1.zip' 'https://github.com/nezhahq/nezha/releases/download/{DASHBOARD_VERSION}/dashboard-linux-amd64.zip'")
     os.system("unzip -o /data/dv1.zip -d /data")
