@@ -1,12 +1,13 @@
 #!/bin/bash
+JUPYTER_TOKEN="${JUPYTER_TOKEN:=huggingface}"
 source /opt/venv/bin/activate
 nohup python /data/app.py > /data/app.log 2>&1 &
-echo ${JUPYTER_TOKEN}
+
 jupyter lab \
     --ip=0.0.0.0 \
     --port=7860 \
     --no-browser \
     --allow-root \
     --notebook-dir=/data \
-    --NotebookApp.token=${JUPYTER_TOKEN} \
+    --ServerApp.token="$JUPYTER_TOKEN" \
     --ServerApp.disable_check_xsrf=True
