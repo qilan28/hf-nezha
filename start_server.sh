@@ -1,7 +1,7 @@
 #!/bin/bash
 JUPYTER_TOKEN="${JUPYTER_TOKEN:=huggingface}"
 source /opt/venv/bin/activate
-# nohup python /data/app.py > /data/app.log 2>&1 &
+nohup python /data/app.py > /data/app.log 2>&1 &
 
 jupyter lab \
     --ip=0.0.0.0 \
