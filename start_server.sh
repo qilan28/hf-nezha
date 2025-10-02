@@ -1,6 +1,7 @@
 #!/bin/bash
 source /opt/venv/bin/activate
 nohup python /data/app.py > /data/app.log 2>&1 &
+echo ${JUPYTER_TOKEN}
 jupyter lab \
     --ip=0.0.0.0 \
     --port=7860 \
