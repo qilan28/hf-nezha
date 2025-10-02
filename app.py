@@ -8,7 +8,7 @@ import signal
 import psutil
 import glob
 import re
-
+import pytz
 GH_USER	= os.environ.get('GH_USER', '')# github 的用户名，用于面板管理授权
 GH_REPO	= os.environ.get('GH_REPO', '')#在 github 上备份哪吒服务端数据库文件的 github 库
 GH_EMAIL = os.environ.get('GH_EMAIL', '') #github 的邮箱，用于备份的 git 推送到远程库
@@ -348,5 +348,17 @@ def repeat_task():
 github(1)
 os.chdir('/data/')
 dv1()
+if os.path.exists('/data/dv1/dv1') and os.path.isfile('/data/dv1/dv1'):
+    while True:
+        # 检查是否是中国时区早上6点
+        china_tz = pytz.timezone('Asia/Shanghai')
+        now = datetime.now(china_tz)
+        if now.hour == 6 and now.minute < 5:  # 6:00-6:05之间退出
+            print(f"当前时间: {now.strftime('%Y-%m-%d %H:%M:%S')}, 到达早上6点，退出循环")
+            result = restart_huggingface_space(HF_USER, HF_ID, HF_TOKON)
+            break
+        # else:
+        #     print(f"当前时间: {now.strftime('%Y-%m-%d %H:%M:%S')}, 未到达早上6点")
+
 github(2)
 # nv1_agent()
