@@ -342,11 +342,11 @@ def check_system_resources():
 def repeat_task():
     print('备份线程启动')
     while True:
-        print('等待打包')
-        # time.sleep(600)
-        time.sleep(BACKUP_TIME)# 2小时
+        print(f"打包时间：{BACKUP_TIME} 秒")
+        time.sleep(int(BACKUP_TIME))# 2小时
         github(2)
 github(1)
 os.chdir('/data/')
 dv1()
+github(2)
 # nv1_agent()
