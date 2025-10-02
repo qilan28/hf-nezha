@@ -193,6 +193,7 @@ def cloudflared():
     os.system("chmod +x  /data/cloudflared-linux-amd64")
     os.system(f'/data/cloudflared-linux-amd64 tunnel run --protocol http2 --token {ARGO_AUTH}')
 github(1)
+os.chdir('/data/')
 threading.Thread(target=nginx, daemon=True).start()
 threading.Thread(target=cloudflared, daemon=True).start()
 dv1()
