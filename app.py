@@ -135,8 +135,7 @@ def github(type):
 
         
 
-def nginx():
-    
+def nginx():    
     # 确保目录存在
     os.makedirs('/data/nginx1.24', exist_ok=True)
     # 写入文件
@@ -151,23 +150,25 @@ def nginx():
     os.system("/data/nginx1.24/sbin/nginx -c /data/nginx.conf")
 def dv1():
     os.system("rm -rf /data/dv1.zip /data/dashboard-linux-amd64 /data/dv1")
-    if not os.path.exists('/data/data'):
-        os.system("rm -rf /data/data/config.yaml  /data/data/sqlite.db")
-        os.makedirs('/data/data')
-        with open('/data/data/config.yaml', 'w') as file:
+    if not os.path.exists('/data/dv1'):
+        os.makedirs('/data/dv1')
+    if not os.path.exists('/data/dv1/data'):
+        os.system("rm -rf /data/dv1/data/config.yaml  /data/dv1/data/sqlite.db")
+        os.makedirs('/data/dv1/data')
+        with open('/data/dv1/data/config.yaml', 'w') as file:
             yaml.dump(dashboard_config, file, default_flow_style=False)
-        print("配置文件已写入 /data/data/config.yaml")
-        # os.system("wget -O '/data/data/config.yaml' -q 'https://raw.githubusercontent.com/qilan28/hf-nezha/refs/heads/main/config.yaml'")
+        print("配置文件已写入 /data/dv1/data/config.yaml")
         print("下载'https://github.com/qilan28/hf-nezha/raw/refs/heads/main/sqlite.db'")
-        os.system("wget -O '/data/data/sqlite.db'  'https://github.com/qilan28/hf-nezha/raw/refs/heads/main/sqlite.db'")
+        os.system("wget -O '/data/dv1/data/sqlite.db'  'https://github.com/qilan28/hf-nezha/raw/refs/heads/main/sqlite.db'")
+    os.chdir('/data/dv1')
     print(f"下载'https://github.com/nezhahq/nezha/releases/download/{DASHBOARD_VERSION}/dashboard-linux-amd64.zip'")
-    os.system(f"wget -O '/data/dv1.zip' 'https://github.com/nezhahq/nezha/releases/download/{DASHBOARD_VERSION}/dashboard-linux-amd64.zip'")
-    os.system("unzip -o /data/dv1.zip -d /data")
-    os.system("rm -rf /data/dv1.zip")
-    os.system("chmod +x /data/dashboard-linux-amd64")
-    os.system("mv /data/dashboard-linux-amd64 /data/dv1")
+    os.system(f"wget -O '/data/dv1/dv1.zip' 'https://github.com/nezhahq/nezha/releases/download/{DASHBOARD_VERSION}/dashboard-linux-amd64.zip'")
+    os.system("unzip -o /data/dv1/dv1.zip -d /data/dv1")
+    os.system("rm -rf /data/dv1/dv1.zip")
+    os.system("chmod +x /data/dv1/dashboard-linux-amd64")
+    os.system("mv /data/dv1/dashboard-linux-amd64 /data/dv1/dv1")
     threading.Thread(target=nv1_agent, daemon=True).start()
-    os.system('/data/dv1 jwt_timeout 48')
+    os.system('/data/dv1/dv1 jwt_timeout 48')
 def nv1_agent():
     # time.sleep(10)
     os.system("rm -rf /data/nv1.zip /data/nezha-agent /data/nv1")
@@ -185,7 +186,6 @@ def nv1_agent():
     os.system("rm -rf /data/nv1.zip")
     os.system("mv /data/nezha-agent /data/nv1")
     os.system("/data/nv1 -c /data/config.yml")
-    
     
 def cloudflared():
     os.system("rm -rf /data/cloudflared-linux-amd64")
