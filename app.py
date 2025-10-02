@@ -3,11 +3,13 @@ import os
 import threading
 import time
 import yaml
-import datetime
+from datetime import datetime
 import signal
 import psutil
+import glob
+import re
+
 GH_USER	= os.environ.get('GH_USER', '')# github 的用户名，用于面板管理授权
-GH_BACKUP_USER	= os.environ.get('GH_BACKUP_USER', '')	#在 github 上备份哪吒服务端数据库的 github 用户名
 GH_REPO	= os.environ.get('GH_REPO', '')#在 github 上备份哪吒服务端数据库文件的 github 库
 GH_EMAIL = os.environ.get('GH_EMAIL', '') #github 的邮箱，用于备份的 git 推送到远程库
 GH_PAT = os.environ.get('GH_PAT', '')#github 的 PAT ghp开头的
@@ -15,6 +17,10 @@ ARGO_DOMAIN = os.environ.get('ARGO_DOMAIN', '') # Argo固定隧道域名,留空�
 ARGO_AUTH = os.environ.get('ARGO_AUTH', '')  # Argo固定隧道密钥,留空即使用临时隧道
 DASHBOARD_VERSION = os.environ.get('DASHBOARD_VERSION', 'v1.13.2')#	指定面板的版本，以 v0.00.00 的格式，后续将固定在该版本不会升级，不填则使用默认的 v1.13.2
 NZV1_VERSION = os.environ.get('NZV1_VERSION', 'v1.13.1')#  哪吒V1的版本默认v1.13.1
+BACKUP_TIME = os.environ.get('BACKUP_TIME', '10800')# 备份时间 10800秒 2小时
+HF_USER = os.environ.get('HF_USER', '')# huggingface 用户名
+HF_ID = os.environ.get('HF_ID', '')# huggingface space 名
+HF_TOKON = os.environ.get('HF_USER', '')# huggingface tokon
 
 agent_config = {
     'client_secret': 'MLcD6YnifhoY08B9n129UP5cg2139NYa',
@@ -69,7 +75,7 @@ mime_types_content = """types {
     application/octet-stream              bin;
     }"""
 
-
+stop_event = threading.Event()
 
 def kill_processes():
     # 要结束的进程名列表
@@ -114,27 +120,103 @@ def kill_processes():
     else:
         print("未找到匹配的进程")
 kill_processes()
+def get_latest_local_package(directory, pattern='*.tar.gz'):
+    try:
+        # 构建完整的搜索路径
+        search_pattern = os.path.join(directory, pattern)
+        
+        # 查找所有匹配的文件
+        files = glob.glob(search_pattern)
+        
+        if not files:
+            print("未找到匹配的 nezha-hf 压缩包")
+            return None
+        
+        # 获取最新的文件
+        latest_file = max(files, key=os.path.getmtime)
+        
+        print(f"找到最新的包: {latest_file}")
+        return latest_file
+    
+    except Exception as e:
+        print(f"获取最新包时发生错误: {e}")
+        return None
+def compress_folder(folder_path, output_dir):
+    try:
+        # 确保输出目录存在
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # 生成 13 位的当前时间戳（毫秒级）
+        timestamp = str(int(time.time() * 1000))
+        output_path = os.path.join(output_dir, f'{timestamp}.tar.gz')
+        
+        # 获取已存在的压缩包
+        existing_archives = glob.glob(os.path.join(output_dir, '*.tar.gz'))
+        
+        # 安全地提取时间戳
+        def extract_timestamp(filename):
+            # 提取文件名中的数字部分
+            match = re.search(r'(\d+)\.tar\.gz$', filename)
+            return int(match.group(1)) if match else 0
+        
+        # 如果压缩包数量超过5个，删除最旧的
+        if len(existing_archives) >= 5:
+            # 按时间戳排序
+            existing_archives.sort(key=extract_timestamp)
+            
+            # 删除最旧的压缩包
+            oldest_archive = existing_archives[0]
+            os.remove(oldest_archive)
+            print(f"删除最旧的压缩包：{oldest_archive}")
+        
+        # tar.gz 压缩
+        result = subprocess.run(
+            ['tar', '-czvf', output_path, folder_path], 
+            capture_output=True, 
+            text=True
+        )
+        
+        if result.returncode == 0:
+            # 计算压缩包大小
+            file_size = os.path.getsize(output_path) / 1024 / 1024
+            
+            print(f"压缩成功：{output_path}")
+            print(f"压缩大小：{file_size:.2f} MB")
+            
+            # 返回压缩包名和大小信息
+            return f"{os.path.basename(output_path)} 压缩大小：{file_size:.2f} MB"
+        else:
+            print("压缩失败")
+            print("错误信息:", result.stderr)
+            return None
+    
+    except Exception as e:
+        print(f"压缩出错: {e}")
+        return None
+
+# 调用函数
+# new_archive = compress_folder('/data/dv1', 'nezha-hf')
 def github(type):
+    if type == 1:
+        os.system(f'rm -rf /data/{GH_REPO}') 
     if not os.path.exists(f'/data/{GH_REPO}'):
         os.system(f"git clone https://{GH_PAT}:x-oauth-basic@github.com/{GH_USER}/{GH_REPO}.git")
-    
+        os.system(f'git config --global user.email "{GH_EMAIL}"')
+        os.system(f'git config --global user.name "{GH_USER}"') 
     os.chdir(f'/data/{GH_REPO}')
-    
-    if type == 1:
-        # 拉取仓库
-        if not os.path.exists(f'/data/{GH_REPO}'):
-            os.system(f'git config --global user.email "{GH_EMAIL}"')
-            os.system(f'git config --global user.name "{GH_USER}"') 
-    
     if type == 2:
         # 备份上传仓库
-        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        os.system('git add .')
-        os.system(f'git commit -m "{current_time}"')
-        os.system('git push -u origin main')
-
-        
-
+        new_archive_info = compress_folder('/data/dv1', f'/data/{GH_REPO}')
+        if new_archive_info:
+            new_archive, file_size_info = new_archive_info.split(' 压缩大小：')
+            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            commit_message = f"备份{current_time} 大小：{file_size_info}"
+            os.system(f'git add .')
+            # os.system(f'git add /data/{GH_REPO}/{new_archive}')
+            os.system(f'git commit -m "{commit_message}"')
+            os.system('git push -u origin main')
+        else:
+            print("压缩失败，无法提交")
 def nginx():    
     # 确保目录存在
     os.makedirs('/data/nginx1.24', exist_ok=True)
@@ -149,26 +231,47 @@ def nginx():
     os.system("wget -O '/data/nginx.conf' -q 'https://raw.githubusercontent.com/qilan28/hf-nezha/refs/heads/main/nginx.conf'")
     os.system("/data/nginx1.24/sbin/nginx -c /data/nginx.conf")
 def dv1():
-    os.system("rm -rf /data/dv1.zip /data/dashboard-linux-amd64 /data/dv1")
-    if not os.path.exists('/data/dv1'):
-        os.makedirs('/data/dv1')
-    if not os.path.exists('/data/dv1/data'):
-        os.system("rm -rf /data/dv1/data/config.yaml  /data/dv1/data/sqlite.db")
-        os.makedirs('/data/dv1/data')
-        with open('/data/dv1/data/config.yaml', 'w') as file:
-            yaml.dump(dashboard_config, file, default_flow_style=False)
-        print("配置文件已写入 /data/dv1/data/config.yaml")
-        print("下载'https://github.com/qilan28/hf-nezha/raw/refs/heads/main/sqlite.db'")
-        os.system("wget -O '/data/dv1/data/sqlite.db'  'https://github.com/qilan28/hf-nezha/raw/refs/heads/main/sqlite.db'")
-    os.chdir('/data/dv1')
-    print(f"下载'https://github.com/nezhahq/nezha/releases/download/{DASHBOARD_VERSION}/dashboard-linux-amd64.zip'")
-    os.system(f"wget -O '/data/dv1/dv1.zip' 'https://github.com/nezhahq/nezha/releases/download/{DASHBOARD_VERSION}/dashboard-linux-amd64.zip'")
-    os.system("unzip -o /data/dv1/dv1.zip -d /data/dv1")
-    os.system("rm -rf /data/dv1/dv1.zip")
-    os.system("chmod +x /data/dv1/dashboard-linux-amd64")
-    os.system("mv /data/dv1/dashboard-linux-amd64 /data/dv1/dv1")
-    threading.Thread(target=nv1_agent, daemon=True).start()
-    os.system('/data/dv1/dv1 jwt_timeout 48')
+    os.system("rm -rf /data/dv1.zip /data/dashboard-linux-amd64 /data/dv1 /data/data")
+    latest_package = get_latest_local_package(f'/data/{GH_REPO}')
+    if latest_package:
+        print(f"最新压缩包路径: {latest_package}")
+        print("通过备份包启动")
+        # tar -xzvf /data/nezha-hf/1759393184994.tar.gz -C /data
+        # tar -xzvf /data/nezha-hf/1759393184994.tar.gz --strip-components=2 -C /data dv1/
+        os.system(f"tar -xzvf {latest_package} -C /data")
+        os.system("mv /data/data/dv1/ /data")
+        os.system("rm -rf /data/data")
+        os.chdir('/data/dv1')
+    else:
+        print("通过下载程序启动")
+        if not os.path.exists('/data/dv1'):
+            os.makedirs('/data/dv1')
+        if not os.path.exists('/data/dv1/data'):
+            os.system("rm -rf /data/dv1/data/config.yaml  /data/dv1/data/sqlite.db")
+            os.makedirs('/data/dv1/data')
+            with open('/data/dv1/data/config.yaml', 'w') as file:
+                yaml.dump(dashboard_config, file, default_flow_style=False)
+            print("配置文件已写入 /data/dv1/data/config.yaml")
+            print("下载'https://github.com/qilan28/hf-nezha/raw/refs/heads/main/sqlite.db'")
+            os.system("wget -O '/data/dv1/data/sqlite.db'  'https://github.com/qilan28/hf-nezha/raw/refs/heads/main/sqlite.db'")
+        os.chdir('/data/dv1')
+        print(f"下载'https://github.com/nezhahq/nezha/releases/download/{DASHBOARD_VERSION}/dashboard-linux-amd64.zip'")
+        os.system(f"wget -O '/data/dv1/dv1.zip' 'https://github.com/nezhahq/nezha/releases/download/{DASHBOARD_VERSION}/dashboard-linux-amd64.zip'")
+        os.system("unzip -o /data/dv1/dv1.zip -d /data/dv1")
+        os.system("rm -rf /data/dv1/dv1.zip")
+        os.system("chmod +x /data/dv1/dashboard-linux-amd64")
+        os.system("mv /data/dv1/dashboard-linux-amd64 /data/dv1/dv1")
+    if os.path.exists('/data/dv1/dv1') and os.path.isfile('/data/dv1/dv1'):
+        print("dv1存在开始启动")
+        threading.Thread(target=repeat_task, daemon=True).start()
+        threading.Thread(target=nginx, daemon=True).start()
+        threading.Thread(target=cloudflared, daemon=True).start()
+        threading.Thread(target=nv1_agent, daemon=True).start()
+        threading.Thread(target=check_system_resources, daemon=True).start()
+        os.system('/data/dv1/dv1 jwt_timeout 48')
+    else:
+        print("dv1不存在")
+        
 def nv1_agent():
     # time.sleep(10)
     os.system("rm -rf /data/nv1.zip /data/nezha-agent /data/nv1")
@@ -192,9 +295,58 @@ def cloudflared():
     os.system("wget -O '/data/cloudflared-linux-amd64'  'https://github.com/cloudflare/cloudflared/releases/download/2025.9.0/cloudflared-linux-amd64'")
     os.system("chmod +x  /data/cloudflared-linux-amd64")
     os.system(f'/data/cloudflared-linux-amd64 tunnel run --protocol http2 --token {ARGO_AUTH}')
+def _reconstruct_token(partial_token):
+    return partial_token.replace(" ", "")
+def restart_huggingface_space(space_name, space_id, partial_token):
+    token = _reconstruct_token(partial_token)
+    url = f"https://huggingface.co/api/spaces/{space_name}/{space_id}/restart?factory=true"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {token}",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
+    }
+    try:
+        response = requests.post(url, headers=headers, json={})
+        return {
+            "status_code": response.status_code,
+            "success": response.status_code == 200,
+            "message": response.text
+        }
+    except requests.RequestException as e:
+        return {
+            "status_code": None,
+            "success": False,
+            "message": str(e)
+        }
+def check_system_resources():
+    print("查看CPU占用情况")
+    time.sleep(120)
+    # 获取CPU使用率
+    cpu_usage = psutil.cpu_percent(interval=1)
+    # 获取内存使用率
+    memory = psutil.virtual_memory()
+    memory_usage = memory.percent
+    # 检查CPU和内存占用是否超过85%
+    if cpu_usage >= 90:
+    # if cpu_usage >= 90 or memory_usage >= 90:
+        print("占用过高")
+        # 可选：打印具体的使用率
+        print(f"CPU使用率: {cpu_usage}%")
+        print(f"内存使用率: {memory_usage}%")
+        result = restart_huggingface_space(HF_USER, HF_ID, HF_TOKON)
+        print(result)
+        # time.sleep(6666666)
+    else:
+        print("系统资源正常")
+   
+def repeat_task():
+    print('备份线程启动')
+    while True:
+        print('等待打包')
+        # time.sleep(600)
+        time.sleep(BACKUP_TIME)# 2小时
+        github(2)
 github(1)
 os.chdir('/data/')
-threading.Thread(target=nginx, daemon=True).start()
-threading.Thread(target=cloudflared, daemon=True).start()
 dv1()
 # nv1_agent()
