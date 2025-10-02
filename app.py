@@ -24,7 +24,7 @@ HF_TOKON = os.environ.get('HF_USER', '')# huggingface tokon
 
 agent_config = {
     'client_secret': 'MLcD6YnifhoY08B9n129UP5cg2139NYa',
-    'debug': True,
+    'debug': False,
     'disable_auto_update': True,
     'disable_command_execute': False,
     'disable_force_update': False,
