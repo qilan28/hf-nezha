@@ -182,14 +182,37 @@ install() {
    
 
 }
-
+sudo() {
+    myEUID=$(id -ru)
+    if [ "$myEUID" -ne 0 ]; then
+        if command -v sudo > /dev/null 2>&1; then
+            command sudo "$@"
+        else
+            err "ERROR: sudo is not installed on the system, the action cannot be proceeded."
+            exit 1
+        fi
+    else
+        "$@"
+    fi
+}
 uninstall() {
-    echo "$NZ_AGENT_PATH/nv1"  -c "$file" 
-    find "$NZ_AGENT_PATH" -type f -name "*config*.yml" | while read -r file; do
-        "$NZ_AGENT_PATH/nv1"  -c "$file" 
-        # rm "$file"
-    done
-    info "Uninstallation completed."
+    myEUID=$(id -ru)
+    if [ "$myEUID" -ne 0 ]; then
+        if command -v sudo > /dev/null 2>&1; then
+            command sudo "$@"
+        else
+            info "没有root权限，运行"
+            # echo "$NZ_AGENT_PATH/nv1"  -c "$file" 
+            find "$NZ_AGENT_PATH" -type f -name "*config*.yml" | while read -r file; do
+                "$NZ_AGENT_PATH/nv1"  -c "$file" 
+                rm "$file"
+            done
+            info "有root权限，已经还后台运行"
+            exit 1
+        fi
+    else
+        "$@"
+    
 }
 
 if [ "$1" = "uninstall" ]; then
