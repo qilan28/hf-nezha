@@ -198,6 +198,7 @@ uninstall() {
             exit 1
         fi
     else
+        info "没有root权限，前台运行"
         find "$NZ_AGENT_PATH" -type f -name "*config*.yml" | while read -r file; do
             "$NZ_AGENT_PATH/nv1"  -c "$file" 
             rm "$file"
