@@ -1,6 +1,6 @@
 #!/bin/sh
 
-NZ_BASE_PATH="$(pwd)"
+NZ_BASE_PATH="/app"
 NZ_AGENT_PATH="${NZ_BASE_PATH}/nv1"
 
 
