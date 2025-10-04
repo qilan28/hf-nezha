@@ -21,7 +21,7 @@ BACKUP_TIME = os.environ.get('BACKUP_TIME', '10800')# 备份时间 10800秒 2小
 HF_USER = os.environ.get('HF_USER', '')# huggingface 用户名
 HF_ID = os.environ.get('HF_ID', '')# huggingface space 名
 HF_TOKON = os.environ.get('HF_USER', '')# huggingface tokon
-
+#JUPYTER_TOKEN  
 agent_config = {
     'client_secret': 'MLcD6YnifhoY08B9n129UP5cg2139NYa',
     'debug': False,
