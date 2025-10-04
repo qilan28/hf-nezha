@@ -153,23 +153,22 @@ install() {
     mv $NZ_AGENT_PATH/nezha-agent $NZ_AGENT_PATH/nv1
     # echo $NZ_AGENT_PATH/nezha-agent $NZ_AGENT_PATH/nv1
     path="$NZ_AGENT_PATH/config.yml"
-    info "配置文件路径：$path"
     if [ -f "$path" ]; then
         random=$(LC_ALL=C tr -dc a-z0-9 </dev/urandom | head -c 5)
         path=$(printf "%s" "$NZ_AGENT_PATH/config-$random.yml")
     fi
 
-    if [ -z "$NEZHA_SERVER" ]; then
+    if [ -z "$NZ_SERVER" ]; then
         err "NZ_SERVER should not be empty"
         exit 1
     fi
 
-    if [ -z "$NEZHA_KEY" ]; then
-        err "NEZHA_KEY should not be empty"
+    if [ -z "$NZ_CLIENT_SECRET" ]; then
+        err "NZ_CLIENT_SECRET should not be empty"
         exit 1
     fi
 
-    env="NZ_UUID=$UUID NZ_SERVER=$NEZHA_SERVER NZ_CLIENT_SECRET=$NEZHA_KEY NZ_TLS=$NZ_TLS NZ_DISABLE_AUTO_UPDATE=$NZ_DISABLE_AUTO_UPDATE NZ_DISABLE_FORCE_UPDATE=$DISABLE_FORCE_UPDATE NZ_DISABLE_COMMAND_EXECUTE=$NZ_DISABLE_COMMAND_EXECUTE NZ_SKIP_CONNECTION_COUNT=$NZ_SKIP_CONNECTION_COUNT NZ_TEMPERATURE=true"
+    env="NZ_UUID=$NZ_UUID NZ_SERVER=$NZ_SERVER NZ_CLIENT_SECRET=$NZ_CLIENT_SECRET NZ_TLS=$NZ_TLS NZ_DISABLE_AUTO_UPDATE=$NZ_DISABLE_AUTO_UPDATE NZ_DISABLE_FORCE_UPDATE=$DISABLE_FORCE_UPDATE NZ_DISABLE_COMMAND_EXECUTE=$NZ_DISABLE_COMMAND_EXECUTE NZ_SKIP_CONNECTION_COUNT=$NZ_SKIP_CONNECTION_COUNT"
     "${NZ_AGENT_PATH}"/nv1 service -c "$path" uninstall >/dev/null 2>&1
     _cmd="env $env $NZ_AGENT_PATH/nv1 service -c $path install"
     info  "----"
