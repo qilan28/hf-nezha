@@ -178,7 +178,9 @@ install() {
     if ! eval "$_cmd"; then
         err "Install nv1 service failed"
         "${NZ_AGENT_PATH}"/mv1 service -c "$path" uninstall >/dev/null 2>&1
-        # exit 1
+        myEUID=$(id -ru)
+        if [ "$myEUID" -ne 0 ]; then
+            exit 1
     fi
 
     success "nv1 successfully installed"
