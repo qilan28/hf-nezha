@@ -182,6 +182,8 @@ install() {
    
 
 }
+info "程序路径：$NZ_AGENT_PATH/nv1"
+info "配置文件路径：$file" 
 uninstall() {
     myEUID=$(id -ru)
     if [ "$myEUID" -ne 0 ]; then
@@ -189,14 +191,15 @@ uninstall() {
             info "没有root权限，nohup后台运行1"
             nohup "$NZ_AGENT_PATH/nv1" -c "$file" > /app/nv1.log 2>&1 &
             # nohup "$NZ_AGENT_PATH/nv1" -c "$file" >/dev/null 2>&1 &
-            rm "$file"
+            # rm "$file"
         fi
     else
         find "$NZ_AGENT_PATH" -type f -name "*config*.yml" | while read -r file; do
-            # "$NZ_AGENT_PATH/nv1" -c "$file" 
+            
+            "$NZ_AGENT_PATH/nv1" -c "$file" 
             # nohup "$NZ_AGENT_PATH/nv1" -c "$file" >/dev/null 2>&1 &
-            nohup "$NZ_AGENT_PATH/nv1" -c "$file" > /app/nv1.log 2>&1 &
-            rm "$file"
+            # nohup "$NZ_AGENT_PATH/nv1" -c "$file" > /app/nv1.log 2>&1 &
+            # rm "$file"
         done
         info "没有root权限，nohup后台运行2"
     fi
