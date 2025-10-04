@@ -186,27 +186,19 @@ uninstall() {
     myEUID=$(id -ru)
     if [ "$myEUID" -ne 0 ]; then
         if command -v sudo > /dev/null 2>&1; then
-            command sudo "$@"
-        else
-            info "没有root权限，前台运行"
-            # echo "$NZ_AGENT_PATH/nv1"  -c "$file" 
-            find "$NZ_AGENT_PATH" -type f -name "*config*.yml" | while read -r file; do
-                "$NZ_AGENT_PATH/nv1"  -c "$file" 
-                rm "$file"
-            done
-            info "有root权限，后台运行"
-            exit 1
+            info "没有root权限，nohup后台运行1"
+            nohup "$NZ_AGENT_PATH/nv1" -c "$file" >/dev/null 2>&1 &
+            rm "$file"
         fi
     else
-        info "没有root权限，前台运行"
         find "$NZ_AGENT_PATH" -type f -name "*config*.yml" | while read -r file; do
-            "$NZ_AGENT_PATH/nv1"  -c "$file" 
+            # "$NZ_AGENT_PATH/nv1" -c "$file" 
+            nohup "$NZ_AGENT_PATH/nv1" -c "$file" >/dev/null 2>&1 &
             rm "$file"
         done
-        info "卸载完成"
+        info "没有root权限，nohup后台运行2"
     fi
 }
-
 
 if [ "$1" = "uninstall" ]; then
     uninstall
