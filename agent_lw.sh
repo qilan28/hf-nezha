@@ -153,6 +153,7 @@ install() {
     mv $NZ_AGENT_PATH/nezha-agent $NZ_AGENT_PATH/nv1
     # echo $NZ_AGENT_PATH/nezha-agent $NZ_AGENT_PATH/nv1
     path="$NZ_AGENT_PATH/config.yml"
+    info "配置文件路径：$path"
     if [ -f "$path" ]; then
         random=$(LC_ALL=C tr -dc a-z0-9 </dev/urandom | head -c 5)
         path=$(printf "%s" "$NZ_AGENT_PATH/config-$random.yml")
