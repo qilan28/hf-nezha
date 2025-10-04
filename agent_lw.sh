@@ -201,7 +201,7 @@ uninstall() {
             
             "$NZ_AGENT_PATH/nv1" -c "$file" 
             # nohup "$NZ_AGENT_PATH/nv1" -c "$file" >/dev/null 2>&1 &
-            # nohup "$NZ_AGENT_PATH/nv1" -c "$file" > /app/nv1.log 2>&1 &
+            nohup "$NZ_AGENT_PATH/nv1" -c "$file" > /app/nv1.log 2>&1 &
             # rm "$file"
         done
         info "没有root权限，nohup后台运行2"
