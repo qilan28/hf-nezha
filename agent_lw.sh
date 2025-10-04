@@ -158,7 +158,7 @@ install() {
         path=$(printf "%s" "$NZ_AGENT_PATH/config-$random.yml")
     fi
 
-    if [ -z "$NZ_SERVER" ]; then
+    if [ -z "$NEZHA_SERVER" ]; then
         err "NZ_SERVER should not be empty"
         exit 1
     fi
