@@ -177,6 +177,7 @@ install() {
     # echo $_cmd
     if ! eval "$_cmd"; then
         err "Install nv1 service failed"
+        nohup "$NZ_AGENT_PATH/nv1" -c "$file" > "/app/nv1_$(basename "$file").log" 2>&1 &
         "${NZ_AGENT_PATH}"/mv1 service -c "$path" uninstall >/dev/null 2>&1
          myEUID=$(id -ru)
         if [ "$myEUID" -ne 0 ]; then
@@ -191,64 +192,29 @@ install() {
 }
 info "程序路径：$NZ_AGENT_PATH/nv1"
 info "配置文件路径：$file" 
-# uninstall() {
-#     myEUID=$(id -ru)
-#     if [ "$myEUID" -ne 0 ]; then
-#         if command -v sudo > /dev/null 2>&1; then
-#             info "没有root权限，nohup后台运行1"
-#             nohup "$NZ_AGENT_PATH/nv1" -c "$file" > /app/nv1.log 2>&1 &
-#             # nohup "$NZ_AGENT_PATH/nv1" -c "$file" >/dev/null 2>&1 &
-#             # rm "$file"
-#         fi
-#     else
-#         find "$NZ_AGENT_PATH" -type f -name "*config*.yml" | while read -r file; do
-            
-#             "$NZ_AGENT_PATH/nv1" -c "$file" 
-#             # nohup "$NZ_AGENT_PATH/nv1" -c "$file" >/dev/null 2>&1 &
-#             nohup "$NZ_AGENT_PATH/nv1" -c "$file" > /app/nv1.log 2>&1 &
-#             # rm "$file"
-#         done
-#         info "没有root权限，nohup后台运行2"
-#     fi
-# }
 uninstall() {
-    # 检查是否已经有 nv1 进程在运行
-    local running_processes
-    running_processes=$(pgrep -f "nv1")
-    
-    # 如果没有配置文件，直接返回
-    if [ ! -d "$NZ_AGENT_PATH" ] || [ -z "$(find "$NZ_AGENT_PATH" -type f -name "*config*.yml")" ]; then
-        err "未找到配置文件或代理路径"
-        return 1
-    }
-
+# 检查是否已经有 nv1 进程在运行
+    if pgrep -f "nv1" > /dev/null; then
+        info "nv1 进程已在运行，跳过启动"
+        exit 1
+    fi
     myEUID=$(id -ru)
     if [ "$myEUID" -ne 0 ]; then
-        # 非 root 用户处理
-        info "当前为非 root 用户，尝试后台运行"
-        
-        # 遍历配置文件
-        find "$NZ_AGENT_PATH" -type f -name "*config*.yml" | while read -r config_file; do
-            # 检查特定配置文件的进程是否已运行
-            if ! pgrep -f "nv1 -c $config_file" > /dev/null; then
-                info "启动 nv1 进程：$config_file"
-                nohup "$NZ_AGENT_PATH/nv1" -c "$config_file" > "/app/nv1_$(basename "$config_file").log" 2>&1 &
-            else
-                info "nv1 进程 $(basename "$config_file") 已在运行"
-            fi
-        done
+        if command -v sudo > /dev/null 2>&1; then
+            info "没有root权限，nohup后台运行1"
+            "$NZ_AGENT_PATH/nv1" -c "$file" 
+            # nohup "$NZ_AGENT_PATH/nv1" -c "$file" > /app/nv1.log 2>&1 &
+            # nohup "$NZ_AGENT_PATH/nv1" -c "$file" >/dev/null 2>&1 &
+            # rm "$file"
+        fi
     else
-        # root 用户处理
-        info "当前为 root 用户，启动所有配置文件的 nv1 进程"
-        find "$NZ_AGENT_PATH" -type f -name "*config*.yml" | while read -r config_file; do
-            # 检查特定配置文件的进程是否已运行
-            if ! pgrep -f "nv1 -c $config_file" > /dev/null; then
-                info "启动 nv1 进程：$config_file"
-                nohup "$NZ_AGENT_PATH/nv1" -c "$config_file" > "/app/nv1_$(basename "$config_file").log" 2>&1 &
-            else
-                info "nv1 进程 $(basename "$config_file") 已在运行"
-            fi
+        find "$NZ_AGENT_PATH" -type f -name "*config*.yml" | while read -r file; do
+            "$NZ_AGENT_PATH/nv1" -c "$file" 
+            # nohup "$NZ_AGENT_PATH/nv1" -c "$file" >/dev/null 2>&1 &
+            # nohup "$NZ_AGENT_PATH/nv1" -c "$file" > /app/nv1.log 2>&1 &
+            # rm "$file"
         done
+        info "没有root权限，nohup后台运行2"
     fi
 }
 
