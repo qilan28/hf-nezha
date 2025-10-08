@@ -20,11 +20,11 @@ BACKUP_TIME = os.environ.get('BACKUP_TIME', '10800')# 备份时间 10800秒 2小
 HF_USER1 = os.environ.get('HF_USER1', '')# HF 备份仓库的用户名
 HF_REPO	= os.environ.get('HF_REPO', '')#HF 备份的Models仓库名
 HF_EMAIL = os.environ.get('HF_EMAIL', '') #HF的邮箱
-HF_TOKEN1 = os.environ.get('HF_TOKON1', '')#HF备份账号的TOKEN
+HF_TOKEN1 = os.environ.get('HF_TOKEN1', '')#HF备份账号的TOKEN
 
 HF_USER2 = os.environ.get('HF_USER2', '')# huggingface 用户名
 HF_ID = os.environ.get('HF_ID', '')# huggingface space 名
-HF_TOKEN2 = os.environ.get('HF_TOKEN2', '')# huggingface TOKEN
+HF_TOKEN2 = os.environ.get('HF_TOKON2', '')# huggingface TOKEN
 #JUPYTER_TOKEN  
 agent_config = {
     'client_secret': 'MLcD6YnifhoY08B9n129UP5cg2139NYa',
