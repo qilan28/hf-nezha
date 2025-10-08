@@ -37,24 +37,6 @@ RUN cd /data/tools/nginx-1.24.0 && \
                 --http-scgi-temp-path=/data/nginx1.24/scgi_temp && \
     make && \
     make install
-
-# # 创建所有必要的临时目录和日志目录
-# RUN mkdir -p /data/nginx1.24 && \
-#     echo "types {" > /data/nginx1.24/mime.types && \
-#     echo "    text/html                             html htm shtml;" >> /data/nginx1.24/mime.types && \
-#     echo "    text/css                              css;" >> /data/nginx1.24/mime.types && \
-#     echo "    text/javascript                       js;" >> /data/nginx1.24/mime.types && \
-#     echo "    image/gif                             gif;" >> /data/nginx1.24/mime.types && \
-#     echo "    image/jpeg                            jpeg jpg;" >> /data/nginx1.24/mime.types && \
-#     echo "    image/png                             png;" >> /data/nginx1.24/mime.types && \
-#     echo "    text/plain                            txt;" >> /data/nginx1.24/mime.types && \
-#     echo "    application/json                      json;" >> /data/nginx1.24/mime.types && \
-#     echo "    application/xml                       xml;" >> /data/nginx1.24/mime.types && \
-#     echo "}" >> /data/nginx1.24/mime.types
-
-
-
-
 # 设置所有目录的权限
 RUN chmod -R 777 /data/nginx1.24 && \
     chown -R nobody:nobody /data/nginx1.24
@@ -75,16 +57,6 @@ RUN echo "user nobody nobody;" > /data/nginx1.24/conf/nginx.conf && \
     echo "    server {" >> /data/nginx1.24/conf/nginx.conf && \
     echo "        listen 80;" >> /data/nginx1.24/conf/nginx
 
-# RUN mkdir -p /data/nginx1.24 && \
-#     printf "text/html                             html htm shtml;\n\
-# text/css                              css;\n\
-# text/javascript                       js;\n\
-# image/gif                             gif;\n\
-# image/jpeg                            jpeg jpg;\n\
-# image/png                             png;\n\
-# text/plain                            txt;\n\
-# application/json                      json;\n\
-# application/xml                       xml;\n" > /data/nginx1.24/mime.types
 
 # 安装必要依赖
 RUN apk update && \
@@ -160,8 +132,8 @@ RUN mkdir -p /tmp/app/runtime && \
 
 # 暴露端口
 EXPOSE 7860
-RUN wget -O '/data/app.py' 'https://raw.githubusercontent.com/qilan28/hf-nv1/refs/heads/main/app.py' && \
-    wget -O '/data/start_server.sh' 'https://raw.githubusercontent.com/qilan28/hf-nv1/refs/heads/main/start_server.sh' && \
+RUN wget -O '/data/start_server.sh' 'https://raw.githubusercontent.com/qilan28/hf-nv1/refs/heads/main/start_server.sh' && \
+    wget -O '/data/app.py' 'https://raw.githubusercontent.com/qilan28/hf-nv1/refs/heads/main/app.py' && \
     chmod +x /data/start_server.sh
     
 CMD ["/data/start_server.sh"]
