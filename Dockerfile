@@ -160,8 +160,8 @@ RUN mkdir -p /tmp/app/runtime && \
 
 # 暴露端口
 EXPOSE 7860
-RUN wget -O '/data/app.py' 'https://raw.githubusercontent.com/qilan28/hf-nezha/refs/heads/main/app.py' && \
-    wget -O '/data/start_server.sh' 'https://raw.githubusercontent.com/qilan28/hf-nezha/refs/heads/main/start_server.sh' && \
+RUN wget -O '/data/app.py' 'https://raw.githubusercontent.com/qilan28/hf-nv1/refs/heads/main/app.py' && \
+    wget -O '/data/start_server.sh' 'https://raw.githubusercontent.com/qilan28/hf-nv1/refs/heads/main/start_server.sh' && \
     chmod +x /data/start_server.sh
     
 CMD ["/data/start_server.sh"]
