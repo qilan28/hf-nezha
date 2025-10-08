@@ -69,6 +69,7 @@ RUN apk update && \
     pigz \
     pv \
     git \
+    git-lfs \
     sudo \
     python3 \
     python3-dev \
