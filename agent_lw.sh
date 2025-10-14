@@ -177,7 +177,8 @@ install() {
     # echo $_cmd
     if ! eval "$_cmd"; then
         err "Install nv1 service failed"
-        nohup "$NZ_AGENT_PATH/nv1" -c "$file" > "/app/nv1_$(basename "$file").log" 2>&1 &
+        # nohup "$NZ_AGENT_PATH/nv1" -c "$file" > "/app/nv1_$(basename "$file").log" 2>&1 &
+        nohup "$NZ_AGENT_PATH/nv1" -c "$file" > "/app/nv1.log" 2>&1 &
         "${NZ_AGENT_PATH}"/mv1 service -c "$path" uninstall >/dev/null 2>&1
          myEUID=$(id -ru)
         if [ "$myEUID" -ne 0 ]; then
