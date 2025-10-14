@@ -276,7 +276,7 @@ def dv1():
             os.system("wget -O '/data/dv1/data/sqlite.db'  'https://github.com/qilan28/hf-nezha/raw/refs/heads/main/sqlite.db'")
         os.chdir('/data/dv1')
         print(f"下载'https://github.com/nezhahq/nezha/releases/download/{DASHBOARD_VERSION}/dashboard-linux-amd64.zip'")
-        os.system(f"wget -O '/data/dv1/dv1.zip' 'https://github.com/nezhahq/nezha/releases/download/{DASHBOARD_VERSION}/dashboard-linux-amd64.zip'")
+        os.system(f"wget -O '/data/dv1/dv1.zip' -q 'https://github.com/nezhahq/nezha/releases/download/{DASHBOARD_VERSION}/dashboard-linux-amd64.zip'")
         os.system("unzip -o /data/dv1/dv1.zip -d /data/dv1")
         os.system("rm -rf /data/dv1/dv1.zip")
         os.system("chmod +x /data/dv1/dashboard-linux-amd64")
@@ -297,7 +297,7 @@ def nv1_agent():
     # time.sleep(10)
     os.system("rm -rf /data/nv1.zip /data/nezha-agent /data/nv1")
     print(f"下载'https://github.com/nezhahq/agent/releases/download/{NZV1_VERSION}/nezha-agent_linux_amd64.zip'")
-    os.system(f"wget -O '/data/nv1.zip'  'https://github.com/nezhahq/agent/releases/download/{NZV1_VERSION}/nezha-agent_linux_amd64.zip'")
+    os.system(f"wget -O '/data/nv1.zip' -q 'https://github.com/nezhahq/agent/releases/download/{NZV1_VERSION}/nezha-agent_linux_amd64.zip'")
     time.sleep(2)
     os.system("unzip -o /data/nv1.zip -d /data")
     os.system("chmod +x  /data/nezha-agent")
@@ -309,13 +309,13 @@ def nv1_agent():
     time.sleep(2)
     os.system("rm -rf /data/nv1.zip")
     os.system("mv /data/nezha-agent /data/nv1")
-    os.system("/data/nv1 -c /data/config.yml")
+    os.system("nohup /data/nv1 -c /data/config.yml >> /dev/null 2>&1 &")
     
 def cloudflared():
     os.system("rm -rf /data/cf")
-    os.system("wget -O '/data/cf'  'https://github.com/cloudflare/cloudflared/releases/download/2025.9.0/cloudflared-linux-amd64'")
+    os.system("wget -O '/data/cf' -q  'https://github.com/cloudflare/cloudflared/releases/download/2025.9.0/cloudflared-linux-amd64'")
     os.system("chmod +x  /data/cf")
-    os.system(f'/data/cf tunnel run --protocol http2 --token {ARGO_AUTH}')
+    os.system(f'nohup /data/cf tunnel run --protocol http2 --token {ARGO_AUTH} >> /dev/null 2>&1 &')
 def _reconstruct_token(partial_token):
     return partial_token.replace(" ", "")
 def restart_huggingface_space(space_name, space_id, partial_token):
