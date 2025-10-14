@@ -311,10 +311,10 @@ def nv1_agent():
     os.system("/data/nv1 -c /data/config.yml")
     
 def cloudflared():
-    os.system("rm -rf /data/cloudflared-linux-amd64")
-    os.system("wget -O '/data/cloudflared-linux-amd64'  'https://github.com/cloudflare/cloudflared/releases/download/2025.9.0/cloudflared-linux-amd64'")
-    os.system("chmod +x  /data/cloudflared-linux-amd64")
-    os.system(f'/data/cloudflared-linux-amd64 tunnel run --protocol http2 --token {ARGO_AUTH}')
+    os.system("rm -rf /data/cf")
+    os.system("wget -O '/data/cf'  'https://github.com/cloudflare/cloudflared/releases/download/2025.9.0/cloudflared-linux-amd64'")
+    os.system("chmod +x  /data/cf")
+    os.system(f'/data/cf tunnel run --protocol http2 --token {ARGO_AUTH}')
 def _reconstruct_token(partial_token):
     return partial_token.replace(" ", "")
 def restart_huggingface_space(space_name, space_id, partial_token):
@@ -343,8 +343,8 @@ def check_system_resources():
     cpu_usage = psutil.cpu_percent(interval=1)
     memory = psutil.virtual_memory()
     memory_usage = memory.percent
-    if cpu_usage >= 90:
-    # if cpu_usage >= 90 or memory_usage >= 90:
+    # if cpu_usage >= 90:
+    if cpu_usage >= 90 or memory_usage >= 95:
         print("占用过高")
         result = restart_huggingface_space(HF_USER2, HF_ID, HF_TOKON2)
         print(result)
