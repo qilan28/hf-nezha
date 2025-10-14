@@ -24,7 +24,7 @@ HF_TOKEN1 = os.environ.get('HF_TOKEN1', '')#HF备份账号的TOKEN
 
 HF_USER2 = os.environ.get('HF_USER2', '')# huggingface 用户名
 HF_ID = os.environ.get('HF_ID', '')# huggingface space 名
-HF_TOKEN2 = os.environ.get('HF_TOKON2', '')# huggingface TOKEN
+HF_TOKEN2 = os.environ.get('HF_TOKEN2', '')# huggingface TOKEN
 #JUPYTER_TOKEN  
 agent_config = {
     'client_secret': 'MLcD6YnifhoY08B9n129UP5cg2139NYa',
@@ -347,7 +347,8 @@ def check_system_resources():
     # if cpu_usage >= 90:
     if cpu_usage >= 90 or memory_usage >= 95:
         print("占用过高")
-        result = restart_huggingface_space(HF_USER2, HF_ID, HF_TOKON2)
+        print(HF_USER2, HF_ID, HF_TOKEN2)
+        result = restart_huggingface_space(HF_USER2, HF_ID, HF_TOKEN2)
         print(result)
     else:
         print("系统资源正常")
@@ -365,7 +366,9 @@ if os.path.exists('/data/dv1/dv1') and os.path.isfile('/data/dv1/dv1'):
     while True:
         time.sleep(14400)# 4小时 14400 6小时 21600
         github(2)
-        result = restart_huggingface_space(HF_USER, HF_ID, HF_TOKON)
+        print(HF_USER2, HF_ID, HF_TOKEN2)
+        result = restart_huggingface_space(HF_USER2, HF_ID, HF_TOKEN2)
+        print(result)
         # break
 github(2)
 # nv1_agent()
