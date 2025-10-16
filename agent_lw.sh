@@ -142,20 +142,20 @@ install() {
     elif command -v curl >/dev/null 2>&1; then
         _cmd="curl --max-time 60 -fsSL \"$NZ_AGENT_URL\" -o ./nv1_${os}_${os_arch}.zip >/dev/null 2>&1"
     fi
-
+    rm -rf ./nv1_${os}_${os_arch}.zip
     if ! eval "$_cmd"; then
         err "Download nv1 release failed, check your network connectivity"
         exit 1
     fi
-    mkdir -p $NZ_AGENT_PATH
-    unzip -qo ./nv1_${os}_${os_arch}.zip -d $NZ_AGENT_PATH &&
+    #mkdir -p $NZ_AGENT_PATH
+    unzip -qo ./nv1_${os}_${os_arch}.zip -d . &&
     rm -rf ./nv1_${os}_${os_arch}.zip
-    mv $NZ_AGENT_PATH/nezha-agent $NZ_AGENT_PATH/nv1
+    mv ./nezha-agent ./nv1
     # echo $NZ_AGENT_PATH/nezha-agent $NZ_AGENT_PATH/nv1
-    path="$NZ_AGENT_PATH/config.yml"
+    path="./config.yml"
     if [ -f "$path" ]; then
         random=$(LC_ALL=C tr -dc a-z0-9 </dev/urandom | head -c 5)
-        path=$(printf "%s" "$NZ_AGENT_PATH/config-$random.yml")
+        path=$(printf "%s" "./config-$random.yml")
     fi
 
     if [ -z "$NZ_SERVER" ]; then
@@ -170,15 +170,15 @@ install() {
 # NZ_DEBUG=true
     env="NZ_UUID=$UUID NZ_SERVER=$NZ_SERVER NZ_CLIENT_SECRET=$NZ_CLIENT_SECRET NZ_TLS=true  NZ_TEMPERATURE=true NZ_DISABLE_AUTO_UPDATE=$NZ_DISABLE_AUTO_UPDATE NZ_DISABLE_FORCE_UPDATE=$DISABLE_FORCE_UPDATE NZ_DISABLE_COMMAND_EXECUTE=$NZ_DISABLE_COMMAND_EXECUTE NZ_SKIP_CONNECTION_COUNT=$NZ_SKIP_CONNECTION_COUNT"
     "${NZ_AGENT_PATH}"/nv1 service -c "$path" uninstall >/dev/null 2>&1
-    _cmd="env $env $NZ_AGENT_PATH/nv1 service -c $path install"
+    _cmd="env $env ./nv1 service -c $path install"
     info  "----"
     info  $env
     info  "----"
     # echo $_cmd
     if ! eval "$_cmd"; then
         err "Install nv1 service failed"
-        # nohup "$NZ_AGENT_PATH/nv1" -c "$file" > "/app/nv1_$(basename "$file").log" 2>&1 &
-        nohup "$NZ_AGENT_PATH/nv1" -c "$file" > "/app/nv1.log" 2>&1 &
+        # nohup "./nv1" -c "$file" > "/app/nv1_$(basename "$file").log" 2>&1 &
+        nohup "./nv1" -c "$file" > "./nv1.log" 2>&1 &
         "${NZ_AGENT_PATH}"/mv1 service -c "$path" uninstall >/dev/null 2>&1
          myEUID=$(id -ru)
         if [ "$myEUID" -ne 0 ]; then
@@ -191,7 +191,7 @@ install() {
    
 
 }
-info "程序路径：$NZ_AGENT_PATH/nv1"
+info "程序路径：./nv1"
 info "配置文件路径：$file" 
 uninstall() {
 # 检查是否已经有 nv1 进程在运行
@@ -203,16 +203,16 @@ uninstall() {
     if [ "$myEUID" -ne 0 ]; then
         if command -v sudo > /dev/null 2>&1; then
             info "没有root权限，nohup后台运行1"
-            "$NZ_AGENT_PATH/nv1" -c "$file" 
-            # nohup "$NZ_AGENT_PATH/nv1" -c "$file" > /app/nv1.log 2>&1 &
-            # nohup "$NZ_AGENT_PATH/nv1" -c "$file" >/dev/null 2>&1 &
+            #"./nv1" -c "$file" 
+            #nohup "./nv1" -c "$file" > /app/nv1.log 2>&1 &
+            #nohup "./nv1" -c "$file" >/dev/null 2>&1 &
             # rm "$file"
         fi
     else
-        find "$NZ_AGENT_PATH" -type f -name "*config*.yml" | while read -r file; do
-            "$NZ_AGENT_PATH/nv1" -c "$file" 
-            # nohup "$NZ_AGENT_PATH/nv1" -c "$file" >/dev/null 2>&1 &
-            # nohup "$NZ_AGENT_PATH/nv1" -c "$file" > /app/nv1.log 2>&1 &
+        find "." -type f -name "*config*.yml" | while read -r file; do
+            "./nv1" -c "$file" 
+            nohup "./nv1" -c "$file" >/dev/null 2>&1 &
+            # nohup "./nv1" -c "$file" > /app/nv1.log 2>&1 &
             # rm "$file"
         done
         info "没有root权限，nohup后台运行2"
