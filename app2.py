@@ -200,7 +200,7 @@ def compress_folder(folder_path, output_dir):
             print(f"压缩时间：{formatted_time}")
             
             # 返回压缩包名和大小信息
-            return f"{os.path.basename(output_path)} 压缩大小：{file_size:.2f} MB 压缩时间：{formatted_time}"
+            return f"{os.path.basename(output_path)} MB：{file_size:.2f} MB TIME：{formatted_time}"
         else:
             print("压缩失败")
             print("错误信息:", result.stderr)
@@ -228,7 +228,7 @@ def github(type):
         # 备份上传仓库
         new_archive_info = compress_folder('/data/dv1', f'/data/{HF_REPO}')
         if new_archive_info:
-            new_archive, file_size_info = new_archive_info.split(' 压缩大小：')
+            new_archive, file_size_info = new_archive_info.split(' MB：')
             os.system(f'git add .')
             os.system(f'git commit -m "{file_size_info}"')
             # os.system('git push -u origin main')
