@@ -224,6 +224,7 @@ def github(type):
         os.system(f'git config --global user.name "{HF_USER1}"') 
     os.chdir(f'/data/{HF_REPO}')
     if type == 2:
+        os.chdir(f'/data/{HF_REPO}')
         print("开始备份上传HF")
         # 清理 LFS 存储
         os.system('git lfs prune')
