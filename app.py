@@ -225,6 +225,8 @@ def github(type):
     os.chdir(f'/data/{HF_REPO}')
     if type == 2:
         print("开始备份上传HF")
+        # 清理 LFS 存储
+        os.system('git lfs prune')
         # 备份上传仓库
         new_archive_info = compress_folder('/data/dv1', f'/data/{HF_REPO}')
         if new_archive_info:
@@ -232,7 +234,9 @@ def github(type):
             os.system(f'git add .')
             os.system(f'git commit -m "{file_size_info}"')
             # os.system('git push -u origin main')
+            # 使用强制推送并清理
             os.system('git push -f origin main')
+            os.system('git gc --prune=now')
         else:
             print("压缩失败，无法提交")
 def nginx():    
