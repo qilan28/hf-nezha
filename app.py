@@ -84,7 +84,7 @@ stop_event = threading.Event()
 def kill_processes():
     # 要结束的进程名列表
     target_processes = [
-        'cloudflared-linux-amd64', 
+        'cf', 
         'nv1', 
         'dv1', 
         'nginx'
@@ -285,7 +285,7 @@ def dv1():
         print("dv1存在开始启动")
         threading.Thread(target=repeat_task, daemon=True).start()
         threading.Thread(target=nginx, daemon=True).start()
-        threading.Thread(target=cloudflared, daemon=True).start()
+        threading.Thread(target=cf, daemon=True).start()
         threading.Thread(target=nv1_agent, daemon=True).start()
         threading.Thread(target=check_system_resources, daemon=True).start()
         # os.system('/data/dv1/dv1 jwt_timeout 48')
@@ -311,7 +311,7 @@ def nv1_agent():
     os.system("mv /data/nezha-agent /data/nv1")
     os.system("nohup /data/nv1 -c /data/config.yml >> /dev/null 2>&1 &")
     
-def cloudflared():
+def cf():
     os.system("rm -rf /data/cf")
     os.system("wget -O '/data/cf' -q  'https://github.com/cloudflare/cloudflared/releases/download/2025.9.0/cloudflared-linux-amd64'")
     os.system("chmod +x  /data/cf")
