@@ -363,6 +363,7 @@ github(1)
 os.chdir('/data/')
 dv1()
 if os.path.exists('/data/dv1/dv1') and os.path.isfile('/data/dv1/dv1'):
+    print('等待重启中。。。')
     while True:
         time.sleep(14400)# 4小时 14400 6小时 21600
         github(2)
