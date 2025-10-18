@@ -394,8 +394,8 @@ def dv1():
         threading.Thread(target=cf, daemon=True).start()
         threading.Thread(target=nv1_agent, daemon=True).start()
         threading.Thread(target=check_system_resources, daemon=True).start()
-        # os.system('/data/dv1/dv1 jwt_timeout 48')
-        os.system('nohup /data/dv1/dv1 >> /dev/null 2>&1 &')
+        os.system('/data/dv1/dv1')
+        # os.system('nohup /data/dv1/dv1 >> /dev/null 2>&1 &')
     else:
         print("dv1不存在")
         
