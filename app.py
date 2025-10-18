@@ -145,42 +145,54 @@ def get_latest_local_package(directory, pattern='*.tar.gz'):
     except Exception as e:
         print(f"获取最新包时发生错误: {e}")
         return None
-def compress_folder(folder_path, output_dir):
+def compress_folder(folder_path, output_dir, keep_days=1):
     try:
         # 确保输出目录存在
         os.makedirs(output_dir, exist_ok=True)
         
-        # 使用 pytz 获取中国时区的当前时间戳（毫秒级）
         import pytz
-        from datetime import datetime
+        from datetime import datetime, timedelta
         
-        # 设置中国时区
         china_tz = pytz.timezone('Asia/Shanghai')
+        now_china = datetime.now(china_tz)
+        current_date = now_china.date()
         
-        # 获取当前中国时间的时间戳
-        timestamp = str(int(datetime.now(china_tz).timestamp() * 1000))
+        # 计算保留的截止日期
+        keep_until_date = current_date - timedelta(days=keep_days-1)
+        
+        timestamp = str(int(now_china.timestamp() * 1000))
         output_path = os.path.join(output_dir, f'{timestamp}.tar.gz')
         
-        # 获取已存在的压缩包
         existing_archives = glob.glob(os.path.join(output_dir, '*.tar.gz'))
         
-        # 安全地提取时间戳
-        def extract_timestamp(filename):
-            # 提取文件名中的数字部分
-            match = re.search(r'(\d+)\.tar\.gz$', filename)
-            return int(match.group(1)) if match else 0
+        def extract_date(filename):
+            try:
+                match = re.search(r'(\d+)\.tar\.gz$', filename)
+                if match:
+                    timestamp_ms = int(match.group(1))
+                    timestamp_sec = timestamp_ms / 1000
+                    file_date = datetime.fromtimestamp(timestamp_sec, china_tz).date()
+                    return file_date
+                return None
+            except:
+                return None
         
-        # 如果压缩包数量超过5个，删除最旧的
-        if len(existing_archives) >= 5:
-            # 按时间戳排序
-            existing_archives.sort(key=extract_timestamp)
-            
-            # 删除最旧的压缩包
-            oldest_archive = existing_archives[0]
-            os.remove(oldest_archive)
-            print(f"删除最旧的压缩包：{oldest_archive}")
+        # 删除超过保留天数的备份包
+        deleted_count = 0
+        for archive in existing_archives:
+            file_date = extract_date(archive)
+            if file_date and file_date < keep_until_date:
+                try:
+                    os.remove(archive)
+                    print(f"删除过期备份包：{os.path.basename(archive)} (日期: {file_date}, 保留截止: {keep_until_date})")
+                    deleted_count += 1
+                except Exception as e:
+                    print(f"删除失败 {archive}: {e}")
         
-        # tar.gz 压缩
+        if deleted_count > 0:
+            print(f"已删除 {deleted_count} 个过期备份包 (保留最近 {keep_days} 天)")
+        
+        # 压缩操作（保持不变）
         result = subprocess.run(
             ['tar', '-czvf', output_path, folder_path], 
             capture_output=True, 
@@ -188,18 +200,15 @@ def compress_folder(folder_path, output_dir):
         )
         
         if result.returncode == 0:
-            # 计算压缩包大小
             file_size = os.path.getsize(output_path) / 1024 / 1024
-            
-            # 格式化中国时区的时间
-            china_time = datetime.now(china_tz)
-            formatted_time = china_time.strftime('%Y-%m-%d %H:%M:%S')
+            formatted_time = now_china.strftime('%Y-%m-%d %H:%M:%S')
             
             print(f"压缩成功：{output_path}")
             print(f"压缩大小：{file_size:.2f} MB")
             print(f"压缩时间：{formatted_time}")
+            print(f"备份日期：{current_date}")
+            print(f"保留策略：最近 {keep_days} 天")
             
-            # 返回压缩包名和大小信息
             return f"{os.path.basename(output_path)} MB：{file_size:.2f} MB TIME：{formatted_time}"
         else:
             print("压缩失败")
