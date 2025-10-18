@@ -17,7 +17,7 @@ ARGO_AUTH = os.environ.get('ARGO_AUTH', '')  # Argo固定隧道密钥,留空即�
 DASHBOARD_VERSION = os.environ.get('DASHBOARD_VERSION', 'v1.13.2')#	指定面板的版本，以 v0.00.00 的格式，后续将固定在该版本不会升级，不填则使用默认的 v1.13.2
 NZV1_VERSION = os.environ.get('NZV1_VERSION', 'v1.13.1')#  哪吒V1的版本默认v1.13.1
 BACKUP_TIME = os.environ.get('BACKUP_TIME', '10800')# 备份时间 10800秒 2小时
-BACKUP_TIME =30
+BACKUP_TIME =120
 
 HF_USER1 = os.environ.get('HF_USER1', '')# HF 备份仓库的用户名
 HF_REPO	= os.environ.get('HF_REPO', '')#HF 备份的Models仓库名
