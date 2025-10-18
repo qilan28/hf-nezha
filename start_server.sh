@@ -1,9 +1,16 @@
 #!/bin/bash
 JUPYTER_TOKEN="${JUPYTER_TOKEN:=huggingface}"
 source /opt/venv/bin/activate
-nohup python /data/app.py > /data/app.log 2>&1 &
-# nohup python /data/app.py > /dev/null 2>&1 &
-python /data/b.py
+# nohup python /data/app.py > /data/app.log 2>&1 &
+# # nohup python /data/app.py > /dev/null 2>&1 &
+# python /data/b.py
+if [ "$N_PORT" != "7860" ]; then
+    nohup python /data/app.py > /data/app.log 2>&1 &
+    python /data/b.py
+else
+    python /data/app.py
+    # 这里不运行 b.py
+fi
 # jupyter lab \
 #     --ip=0.0.0.0 \
 #     --port=7860 \
